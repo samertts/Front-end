@@ -1,4 +1,4 @@
-import { ProviderProfile } from './types';
+import { ProviderProfile } from './types.ts';
 
 export class PricingEngine {
   private static readonly BASE_TEST_FEE = 1500; // IQD or equivalent

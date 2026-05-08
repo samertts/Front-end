@@ -32,6 +32,7 @@ import {
   ChevronRight,
   Pin,
   PinOff,
+  Grid,
   Zap as QuickZap
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';

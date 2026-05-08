@@ -1,6 +1,6 @@
-import { ProviderProfile, ProviderPlan } from './types';
-import { RankingEngine } from './RankingEngine';
-import { PricingEngine } from './PricingEngine';
+import { ProviderProfile, ProviderPlan } from './types.ts';
+import { RankingEngine } from './RankingEngine.ts';
+import { PricingEngine } from './PricingEngine.ts';
 
 export class SimulationEngine {
   static simulateMarket(providerCount: number = 10) {

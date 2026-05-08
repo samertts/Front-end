@@ -27,11 +27,23 @@ export function MarketplaceView() {
   const handleProviderClick = async (provider: any) => {
     // Record ad click
     try {
-      await fetch('/api/ads/click', {
+      const fingerprint = `${navigator.userAgent}-${window.screen.width}x${window.screen.height}`;
+      const response = await fetch('/api/ads/click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ campaignId: `camp-${provider.id}`, providerId: provider.id })
+        body: JSON.stringify({ 
+          campaignId: `camp-${provider.id}`, 
+          providerId: provider.id,
+          userId: 'anonymous-citizen', // ideally get from profile
+          fingerprint
+        })
       });
+      
+      if (response.status === 403) {
+        toast.error("Security alert: Excessive activity detected.");
+        return;
+      }
+      
       toast.success(`Booking redirected to ${provider.name}`);
     } catch (error) {
       console.error(error);

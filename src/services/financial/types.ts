@@ -11,6 +11,14 @@ export interface ProviderProfile {
   reliability: number;
 }
 
+export interface ClickContext {
+  ip: string;
+  userAgent: string;
+  fingerprint: string;
+  userId?: string;
+  referrer?: string;
+}
+
 export interface AdCampaign {
   id: string;
   providerId: string;
@@ -18,6 +26,15 @@ export interface AdCampaign {
   dailyLimit: number;
   spentToday: number;
   active: boolean;
+  fraudScore?: number;
+  deactivatedReason?: string;
+}
+
+export interface FraudReport {
+  isFraud: boolean;
+  score: number;
+  reasons: string[];
+  penaltyRecommendation?: 'deactivate' | 'throttle' | 'flag';
 }
 
 export interface Transaction {

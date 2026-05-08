@@ -3,11 +3,11 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { z } from 'zod';
 import * as admin from 'firebase-admin';
-import { RankingEngine } from './src/services/financial/RankingEngine';
-import { PricingEngine } from './src/services/financial/PricingEngine';
-import { AdEngine, FraudEngine } from './src/services/financial/AdEngine';
-import { SimulationEngine } from './src/services/financial/SimulationEngine';
-import { GovernanceEngine } from './src/services/financial/GovernanceEngine';
+import { RankingEngine } from './src/services/financial/RankingEngine.ts';
+import { PricingEngine } from './src/services/financial/PricingEngine.ts';
+import { AdEngine, FraudEngine } from './src/services/financial/AdEngine.ts';
+import { SimulationEngine } from './src/services/financial/SimulationEngine.ts';
+import { GovernanceEngine } from './src/services/financial/GovernanceEngine.ts';
 
 // Initialize Firebase Admin (using default credentials if possible)
 try {
@@ -27,11 +27,14 @@ async function startServer() {
   // --- Financial API Routes ---
 
   app.get("/api/financial/rank", async (req, res) => {
-    // Logic to fetch providers and rank them
     try {
       const providersSnap = await db?.collection('financial_providers').get();
-      const providers = providersSnap?.docs.map(d => ({ id: d.id, ...d.data() })) || [];
+      const adsSnap = await db?.collection('ads_campaigns').where('active', '==', true).get();
       
+      const providers = providersSnap?.docs.map(d => ({ id: d.id, ...d.data() })) || [];
+      const ads = adsSnap?.docs.map(d => ({ id: d.id, ...d.data() })) || [];
+      const adsMap = new Map(ads.map((a: any) => [a.providerId, a]));
+
       // Add mock if empty
       const list = providers.length > 0 ? providers : [
         { id: 'p1', name: 'Al-Amal Lab', qualityScore: 8.5, speedScore: 9, priceScore: 7, reliability: 0.95, plan: 'premium' },
@@ -39,7 +42,11 @@ async function startServer() {
       ];
 
       const ranked = RankingEngine.antiDominanceControl(
-        list.map((p: any) => ({ ...p, score: RankingEngine.calculateScore(p) }))
+        list.map((p: any) => {
+          const ad = adsMap.get(p.id);
+          const score = RankingEngine.calculateScore(p, ad?.bid || 0, ad?.fraudScore || 0);
+          return { ...p, score };
+        })
       );
 
       res.json(ranked);
@@ -71,22 +78,62 @@ async function startServer() {
   });
 
   app.post("/api/ads/click", async (req, res) => {
-    const { campaignId, providerId } = req.body;
-    const ip = req.ip || '0.0.0.0';
+    const { campaignId, providerId, userId, fingerprint } = req.body;
+    const context = {
+      ip: req.ip || '0.0.0.0',
+      userAgent: req.headers['user-agent'] || 'unknown',
+      fingerprint: fingerprint || 'anonymous',
+      userId: userId,
+      referrer: req.headers.referer
+    };
 
-    if (FraudEngine.detectClickFraud(ip, campaignId)) {
+    // Fetch campaign
+    let campaign: any;
+    if (db) {
+       const doc = await db.collection('ads_campaigns').doc(campaignId).get();
+       if (doc.exists) campaign = { id: doc.id, ...doc.data() };
+    }
+    
+    // Mock for demo if no DB
+    if (!campaign) {
+      campaign = { id: campaignId, providerId, active: true, spentToday: 0, dailyLimit: 1000, fraudScore: 0 };
+    }
+
+    const report = FraudEngine.checkFraud(campaign, context);
+
+    if (report.isFraud) {
       if (db) {
         await db.collection('fraud_logs').add({
           providerId,
-          reason: 'Click Velocity Abuse',
-          severity: 'high',
+          campaignId,
+          reasons: report.reasons,
+          score: report.score,
+          severity: report.score > 80 ? 'critical' : 'high',
+          context: { ip: context.ip, ua: context.userAgent },
           createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
+
+        if (report.penaltyRecommendation === 'deactivate') {
+           await db.collection('ads_campaigns').doc(campaignId).update({
+             active: false,
+             deactivatedReason: `Fraud detected: ${report.reasons.join(', ')}`
+           });
+        }
+
+        if (report.penaltyRecommendation === 'throttle') {
+           const newScore = Math.min(100, (campaign.fraudScore || 0) + 20);
+           await db.collection('ads_campaigns').doc(campaignId).update({
+             fraudScore: newScore
+           });
+        }
       }
-      return res.status(403).json({ error: 'Fraud detected' });
+      return res.status(403).json({ 
+        error: 'Fraudulent activity detected',
+        reasons: report.reasons 
+      });
     }
 
-    res.json({ status: 'tracked' });
+    res.json({ status: 'tracked', cost: AdEngine.calculateClickCost(campaign, 8) }); // assuming quality 8 for now
   });
 
   app.get("/api/financial/simulate", (req, res) => {
