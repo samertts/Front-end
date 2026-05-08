@@ -1,3 +1,5 @@
+export const FINANCIAL_TYPES_READY = true;
+
 export type ProviderPlan = 'free' | 'basic' | 'premium' | 'institutional';
 
 export interface ProviderProfile {

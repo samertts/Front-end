@@ -1,4 +1,4 @@
-import { ProviderProfile } from './types.ts';
+import type { ProviderProfile } from './types.ts';
 
 export class RankingEngine {
   static calculateScore(provider: ProviderProfile, bid: number = 0, fraudScore: number = 0): number {

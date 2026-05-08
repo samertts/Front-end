@@ -1,4 +1,4 @@
-import { AdCampaign, ClickContext, FraudReport } from './types.ts';
+import type { AdCampaign, ClickContext, FraudReport } from './types.ts';
 
 export class AdEngine {
   static validateClick(campaign: AdCampaign, context: ClickContext): { valid: boolean; reason?: string } {

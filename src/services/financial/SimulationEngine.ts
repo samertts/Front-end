@@ -1,4 +1,4 @@
-import { ProviderProfile, ProviderPlan } from './types.ts';
+import type { ProviderProfile, ProviderPlan } from './types.ts';
 import { RankingEngine } from './RankingEngine.ts';
 import { PricingEngine } from './PricingEngine.ts';
 
