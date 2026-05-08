@@ -33,6 +33,7 @@ import {
   Pin,
   PinOff,
   Grid,
+  Search,
   Zap as QuickZap
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -48,6 +49,10 @@ import { useNavigationStore, Wing } from '../store/navigationStore';
 import { WingSwitcher } from './navigation/WingSwitcher';
 import { WingMenu } from './navigation/WingMenu';
 import { useNavigation } from '../hooks/useNavigation';
+import { useUIStore } from '../store/uiStore';
+import { FocusModeToggle, StateIndicator } from './UIExtras';
+import { CommandPalette } from './CommandPalette';
+import { QuickActions } from './QuickActions';
 
 export function Sidebar() {
   const { t, dir } = useLanguage();
@@ -57,6 +62,7 @@ export function Sidebar() {
   const [isWingMenuOpen, setIsWingMenuOpen] = useState(false);
   const { currentWing, setWing: setStoreWing } = useNavigationStore();
   const { navSections } = useNavigation();
+  const { isFocusMode, recentActions, setCommandPalette } = useUIStore();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [pinnedPaths, setPinnedPaths] = useState<string[]>([]);
   
@@ -121,22 +127,37 @@ export function Sidebar() {
         isRtl ? "right-0 border-l" : "left-0 border-r",
         isOpen ? "translate-x-0" : (isRtl ? "translate-x-full" : "-translate-x-full")
       )}>
-        <div className="px-6 py-10 flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/')}>
+        {/* Adaptive Header */}
+        <div 
+          onClick={() => navigate('/')}
+          className={cn(
+            "px-6 py-10 flex items-center gap-4 group cursor-pointer transition-all",
+            isFocusMode ? "py-6 opacity-30 hover:opacity-100" : ""
+          )}
+        >
           <div className="w-12 h-12 bg-indigo-600 rounded-[1.25rem] flex items-center justify-center shadow-2xl shadow-indigo-200 transition-all group-hover:rotate-6 group-hover:scale-110 overflow-hidden relative">
              <div className="absolute inset-0 bg-indigo-400 animate-pulse opacity-20" />
              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
-             <div className="w-7 h-7 text-white bg-white/20 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm relative z-10 transition-all group-hover:border-white/50">
+             <div className="w-7 h-7 text-white bg-white/20 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm relative z-10">
                 <span className="text-[10px] font-black font-headline tracking-tighter">G</span>
              </div>
           </div>
-          <div className="flex flex-col transition-transform group-hover:translate-x-1">
-            <span className="text-xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-1 font-headline">{t.appName}</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 opacity-80 leading-none">{t.medicalIntelligence}</span>
-          </div>
+          {!isFocusMode && (
+            <div className="flex flex-col transition-transform group-hover:translate-x-1">
+              <span className="text-xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-1 font-headline">{t.appName}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 opacity-80 leading-none">{t.medicalIntelligence}</span>
+            </div>
+          )}
         </div>
 
-        <div className="px-4 mb-2">
-          {pinnedItems.length > 0 && (
+        <div className="px-4 mb-2 space-y-4">
+          {/* Operational Controls */}
+          <div className="space-y-3 px-1">
+             <FocusModeToggle />
+             {!isFocusMode && <StateIndicator />}
+          </div>
+
+          {!isFocusMode && pinnedItems.length > 0 && (
             <motion.div 
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -186,20 +207,52 @@ export function Sidebar() {
             </motion.div>
           )}
 
-          <div className="bg-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.3)] p-1.5 rounded-[2.5rem] border border-white/10 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/5 pointer-events-none" />
-            <div className="px-1">
-              <WingSwitcher />
+          {!isFocusMode && (
+            <div className="bg-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.3)] p-1.5 rounded-[2.5rem] border border-white/10 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/5 pointer-events-none" />
+              <div className="px-1 flex flex-col gap-2">
+                <WingSwitcher />
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setIsWingMenuOpen(true)}
+                    className="py-3 px-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2 group active:scale-95 border border-white/5"
+                  >
+                    <Grid size={12} className="group-hover:rotate-90 transition-transform" />
+                    <span className="text-[8px] font-black uppercase tracking-widest leading-none">Matrix</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setCommandPalette(true)}
+                    className="py-3 px-3 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 hover:text-indigo-300 transition-all flex items-center justify-center gap-2 group active:scale-95 border border-indigo-500/20"
+                  >
+                    <Search size={12} />
+                    <span className="text-[8px] font-black uppercase tracking-widest leading-none">Command</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            
-            <button 
-              onClick={() => setIsWingMenuOpen(true)}
-              className="w-full mt-2 py-2 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2 group active:scale-95"
-            >
-              <Grid size={12} className="group-hover:rotate-90 transition-transform" />
-              <span className="text-[9px] font-black uppercase tracking-widest">Global Wing Directory</span>
-            </button>
-          </div>
+          )}
+
+          {/* Recent Actions Shortcut */}
+          {!isFocusMode && recentActions.length > 0 && (
+            <div className="space-y-2 px-2 mt-4">
+               <h3 className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-50 flex items-center gap-2">
+                 <History size={10} /> RECENT
+               </h3>
+               <div className="flex flex-wrap gap-2">
+                 {recentActions.map(action => (
+                   <NavLink 
+                    key={action.id} 
+                    to={action.to}
+                    className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[9px] font-bold text-slate-500 hover:border-indigo-200 hover:text-indigo-600 transition-all"
+                   >
+                     {action.label}
+                   </NavLink>
+                 ))}
+               </div>
+            </div>
+          )}
         </div>
 
         <nav className="flex-1 px-4 space-y-3 overflow-y-auto pt-2 custom-scrollbar">
@@ -362,6 +415,8 @@ export function Sidebar() {
       )}
 
       <WingMenu isOpen={isWingMenuOpen} onClose={() => setIsWingMenuOpen(false)} />
+      <CommandPalette />
+      <QuickActions />
     </>
   );
 }

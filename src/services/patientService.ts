@@ -76,8 +76,15 @@ export const PatientService = {
              status: data.status || "Active",
              lastVisit: data.lastVisit || new Date().toISOString().split('T')[0],
              nationalId: data.nationalId || "N/A",
+             phone: data.phone || "N/A",
+             email: data.email || "N/A",
+             insuranceProvider: data.insuranceProvider || "N/A",
+             insuranceId: data.insuranceId || "N/A",
+             allergies: data.allergies || [],
+             medications: data.medications || [],
+             vitals: data.vitals || { temp: 37, bp: "120/80", pulse: 72, spo2: 98 },
+             clinicalSummary: data.clinicalSummary || "No history available.",
              lastCached: Date.now(),
-             ...data
           };
           await db.patients.put(patient);
           return patient;

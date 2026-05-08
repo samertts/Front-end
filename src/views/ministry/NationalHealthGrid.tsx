@@ -85,21 +85,53 @@ export function NationalHealthGrid() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Real-time Map/Grid Simulation */}
+        {/* National Command Center Main Board */}
         <div className="xl:col-span-2 space-y-8">
-           <div className="p-8 bg-white/5 border border-white/5 rounded-[3rem] relative overflow-hidden group">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 blur-[120px] rounded-full" />
+           <div className="p-10 bg-slate-900 border border-white/10 rounded-[3rem] relative overflow-hidden group shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/5 opacity-50" />
+              <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity">
+                <Globe size={240} className="text-white animate-spin-slow" />
+              </div>
               
               <div className="relative z-10">
-                 <div className="flex justify-between items-start mb-12">
+                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                     <div>
-                       <h2 className="text-xl font-bold tracking-tight mb-1">{t.geospatialPattern}</h2>
-                       <p className="text-xs text-indigo-400 font-bold uppercase tracking-widest">{t.clinicalSurveillance}</p>
+                       <div className="flex items-center gap-3 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Live National Surveillance Active</span>
+                       </div>
+                       <h2 className="text-4xl font-black tracking-tighter text-white uppercase italic">National <span className="text-indigo-400">Command</span> Center</h2>
+                       <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] mt-1 italic">Strategic Health Intelligence Unit • GULA OS Phase IV</p>
                     </div>
-                    <div className="flex gap-2">
-                       <button className="px-4 py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest">Neural Heatmap</button>
-                       <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest">Node Clusters</button>
+                    <div className="flex gap-3">
+                       <button className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-900/40 hover:scale-105 transition-all">
+                          National Map Mode
+                       </button>
+                       <button className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60">
+                          Neural Heatmaps
+                       </button>
                     </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {[
+                      { label: 'Epidemic Threat', val: 'MINIMAL', color: 'text-emerald-400', load: 12 },
+                      { label: 'Lab Hub Efficiency', val: '98.4%', color: 'text-indigo-400', load: 98 },
+                      { label: 'Medicine Buffer', val: 'STABLE', color: 'text-emerald-400', load: 85 },
+                      { label: 'System Uptime', val: '99.99%', color: 'text-indigo-400', load: 99 },
+                    ].map(stat => (
+                      <div key={stat.label} className="bg-white/5 border border-white/5 rounded-[2rem] p-6 hover:bg-white/10 transition-all group/stat">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 mb-4">{stat.label}</p>
+                        <p className={cn("text-3xl font-black italic tracking-tighter mb-4", stat.color)}>{stat.val}</p>
+                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                           <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${stat.load}%` }}
+                            className={cn("h-full", stat.color.replace('text-', 'bg-'))}
+                           />
+                        </div>
+                      </div>
+                    ))}
                  </div>
 
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
@@ -108,35 +140,43 @@ export function NationalHealthGrid() {
                          key={region.name}
                          whileHover={{ scale: 1.02 }}
                          className={cn(
-                           "p-6 rounded-[2rem] border transition-all cursor-pointer group/node",
+                           "p-8 rounded-[2.5rem] border transition-all cursor-pointer group/node relative overflow-hidden",
                            activeRegion === region.name 
-                            ? "bg-indigo-600/20 border-indigo-500 shadow-xl shadow-indigo-900/40" 
+                            ? "bg-indigo-600/20 border-indigo-500 shadow-2xl shadow-indigo-950/50" 
                             : region.load > 85 
-                            ? "bg-rose-500/10 border-rose-500/20" 
+                            ? "bg-rose-500/10 border-rose-500/30" 
                             : "bg-white/5 border-white/5 hover:bg-white/10"
                          )}
                          onClick={() => setActiveRegion(region.name === activeRegion ? null : region.name)}
                        >
-                          <div className="flex justify-between items-start mb-6">
+                          {region.load > 85 && (
+                            <div className="absolute top-0 right-0 p-4">
+                               <AlertCircle size={16} className="text-rose-500 animate-pulse" />
+                            </div>
+                          )}
+                          <div className="flex justify-between items-start mb-8">
                              <div className={cn(
-                               "p-3 rounded-xl transition-all",
-                               activeRegion === region.name ? "bg-indigo-600 text-white" : "bg-white/5 group-hover/node:bg-white/10"
+                               "w-12 h-12 rounded-2xl transition-all flex items-center justify-center border",
+                               activeRegion === region.name ? "bg-indigo-600 border-indigo-400 text-white" : "bg-white/5 border-white/10 text-slate-400"
                              )}>
-                                <MapPin size={20} className={region.load > 85 && activeRegion !== region.name ? "text-rose-400" : "text-indigo-400"} />
+                                <MapPin size={24} />
                              </div>
-                             <span className={cn(
-                               "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest",
-                               activeRegion === region.name ? "bg-white text-indigo-600" : region.load > 85 ? "bg-rose-500 text-white" : "bg-indigo-500/20 text-indigo-400"
-                             )}>
-                                {region.load}% Load
-                             </span>
+                             <div className="text-right">
+                                <span className={cn(
+                                  "text-[10px] font-black uppercase tracking-[0.2em]",
+                                  region.load > 85 ? "text-rose-400" : "text-emerald-400"
+                                )}>
+                                   {region.load > 85 ? 'OVERLOAD' : 'NOMINAL'}
+                                </span>
+                                <p className="text-2xl font-black text-white italic tracking-tighter">{region.load}%</p>
+                             </div>
                           </div>
-                          <h3 className="text-lg font-black text-white mb-1">{region.name}</h3>
-                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                             <span>{region.active} Sessions</span>
-                             <span>{region.value} Mbps</span>
+                          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">{region.name}</h3>
+                          <div className="flex items-center justify-between text-[10px] font-bold text-white/40 uppercase tracking-widest italic">
+                             <span>{region.active} OPS</span>
+                             <span>{region.value} MS</span>
                           </div>
-                          
+
                           <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
                              <motion.div 
                                initial={{ width: 0 }}

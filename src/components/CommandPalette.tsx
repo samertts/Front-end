@@ -1,202 +1,211 @@
-import React, { useEffect, useState } from 'react';
-import { Command } from 'cmdk';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
-  Command as CommandIcon, 
-  User, 
-  Activity, 
-  Settings, 
-  LogOut, 
-  ChevronRight, 
-  Calculator, 
-  Microscope, 
-  Pill, 
-  FileText, 
   Zap, 
-  BrainCircuit,
+  Terminal, 
+  User, 
+  FileText, 
+  FlaskConical, 
+  Activity,
+  Command,
+  ArrowRight,
   History,
-  Star,
-  Globe,
-  ShieldCheck,
-  LayoutDashboard,
-  Server,
-  Network
+  Settings,
+  ShieldAlert,
+  BrainCircuit
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useUIStore } from '../store/uiStore';
+import { useNavigation } from '../hooks/useNavigation';
 import { cn } from '../lib/utils';
-import { useNavigate } from 'react-router-dom';
-import { useNavigationStore, Wing } from '../store/navigationStore';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function CommandPalette() {
-  const { t, language } = useLanguage();
-  const { activeCommand, closeCommand, toggleCommand, history, favorites, setWing } = useNavigationStore();
+  const { isCommandPaletteOpen, setCommandPalette, addRecentAction, recentActions } = useUIStore();
+  const { navSections } = useNavigation();
+  const { t, dir } = useLanguage();
+  const isRtl = dir === 'rtl';
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
-  
-  const isRtl = language === 'AR' || language === 'KU' || language === 'SY';
+  const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Flatten all navigation items for searching
+  const allModules = navSections.flatMap(section => 
+    section.items.map(item => ({
+      ...item,
+      section: section.label,
+      type: 'module'
+    }))
+  );
+
+  const filteredItems = query === '' 
+    ? [] 
+    : allModules.filter(item => 
+        item.label.toLowerCase().includes(query.toLowerCase()) || 
+        item.subtext.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 8);
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        toggleCommand();
+        setCommandPalette(!isCommandPaletteOpen);
       }
+      if (e.key === 'Escape') setCommandPalette(false);
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCommandPaletteOpen, setCommandPalette]);
 
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, [toggleCommand]);
+  useEffect(() => {
+    if (isCommandPaletteOpen) {
+      setTimeout(() => inputRef.current?.focus(), 10);
+      setSelectedIndex(0);
+    }
+  }, [isCommandPaletteOpen]);
 
-  const runCommand = (action: () => void) => {
-    action();
-    closeCommand();
+  const handleSelect = (item: any) => {
+    addRecentAction({ label: item.label, to: item.to });
+    navigate(item.to);
+    setCommandPalette(false);
+    setQuery('');
   };
 
-  const navItems = [
-    { id: 'dash', label: t.nav_command_goDashboard, icon: LayoutDashboard, category: 'Navigation', action: () => navigate('/') },
-    { id: 'patients', label: t.nav_command_openPatient, icon: User, category: 'Navigation', action: () => navigate('/doctor/patients') },
-    { id: 'lab', label: t.nav_command_searchLab, icon: Microscope, category: 'Navigation', action: () => navigate('/lab/dashboard') },
-    { id: 'audit', label: t.nav_command_viewAudit, icon: ShieldCheck, category: 'Navigation', action: () => navigate('/ministry/control-plane') },
-    { id: 'settings', label: t.settings, icon: Settings, category: 'Navigation', action: () => navigate('/settings') },
-  ];
-
-  const wingItems = [
-    { id: 'wing-doctor', label: 'Switch to Doctor Wing', wing: 'doctor' as Wing, icon: Activity },
-    { id: 'wing-lab', label: 'Switch to Laboratory Wing', wing: 'lab' as Wing, icon: Microscope },
-    { id: 'wing-ministry', label: 'Switch to Ministry Wing', wing: 'ministry' as Wing, icon: Globe },
-    { id: 'wing-admin', label: 'Switch to Admin Wing', wing: 'admin' as Wing, icon: Server },
-  ];
-
-  const quickActions = [
-    { id: 'qa-cbc', label: 'Order CBC Panel', icon: Microscope, shortcut: 'O C' },
-    { id: 'qa-script', label: 'New Prescription', icon: Pill, shortcut: 'O P' },
-    { id: 'qa-calc', label: 'Dose Calculator', icon: Calculator, shortcut: 'T C' },
-  ];
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % (filteredItems.length || 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + (filteredItems.length || 1)) % (filteredItems.length || 1));
+    } else if (e.key === 'Enter') {
+      if (filteredItems[selectedIndex]) {
+        handleSelect(filteredItems[selectedIndex]);
+      }
+    }
+  };
 
   return (
     <AnimatePresence>
-      {activeCommand && (
+      {isCommandPaletteOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={closeCommand}
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            onClick={() => setCommandPalette(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-md"
           />
           
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 overflow-hidden border border-slate-100 font-sans"
-            dir={isRtl ? 'rtl' : 'ltr'}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            className={cn(
+              "relative w-full max-w-2xl bg-white rounded-[2rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden border border-slate-200",
+              isRtl ? "font-arabic" : ""
+            )}
+            onKeyDown={handleKeyDown}
           >
-            <Command className="flex flex-col h-full overflow-hidden">
-              <div className="p-8 border-b border-slate-100 flex items-center gap-6">
-                <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 flex-shrink-0">
-                   <Search size={28} />
-                </div>
-                <Command.Input 
-                  autoFocus
-                  placeholder={t.nav_globalSearch}
-                  value={search}
-                  onValueChange={setSearch}
-                  className="flex-1 bg-transparent border-none outline-none text-2xl font-black text-slate-900 placeholder:text-slate-200 tracking-tight"
-                />
-                <div className="hidden md:flex items-center gap-3">
-                   <div className="px-3 py-1.5 bg-slate-900 rounded-xl text-[10px] font-black text-white shadow-xl">ESC</div>
-                </div>
+            <div className="flex items-center px-6 py-5 border-b border-slate-100 gap-4 bg-slate-50/50">
+              <Search size={22} className="text-slate-400" />
+              <input
+                ref={inputRef}
+                autoFocus
+                placeholder={isRtl ? "ابحث عن ملف، مريض، أو أمر..." : "Search for a patient, lab, or command..."}
+                className="w-full bg-transparent border-none outline-none text-xl font-medium text-slate-800 placeholder:text-slate-300"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
+              />
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+                <Command size={10} className="text-slate-400" />
+                <span className="text-[10px] font-black text-slate-400">K</span>
               </div>
+            </div>
 
-              <Command.List className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar bg-slate-50/30">
-                <Command.Empty className="p-20 text-center">
-                  <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                    <History size={32} className="text-slate-300" />
-                  </div>
-                  <p className="text-slate-400 font-bold text-lg">{t.noResultsFound || "No matching commands found."}</p>
-                </Command.Empty>
-
-                {history.length > 0 && (
-                  <Command.Group heading={t.nav_recent} className="mb-8">
-                    {history.map((path) => (
-                      <Command.Item
-                        key={path}
-                        onSelect={() => runCommand(() => navigate(path))}
-                        className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white hover:shadow-lg transition-all group cursor-pointer aria-selected:bg-white aria-selected:shadow-lg"
+            <div className="max-h-[60vh] overflow-y-auto p-4 custom-scrollbar">
+              {query === '' && recentActions.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-2">
+                    <History size={12} /> Recent Workflows
+                  </h3>
+                  <div className="space-y-1">
+                    {recentActions.map((action) => (
+                      <button
+                        key={action.id}
+                        onClick={() => handleSelect(action)}
+                        className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-slate-50 transition-all group"
                       >
-                        <History size={20} className="text-slate-400" />
-                        <span className="font-bold text-slate-700">{path}</span>
-                      </Command.Item>
-                    ))}
-                  </Command.Group>
-                )}
-
-                <Command.Group heading={t.nav_switchWing} className="mb-8">
-                  <div className="grid grid-cols-2 gap-3 p-2">
-                    {wingItems.map((wing) => (
-                      <Command.Item
-                        key={wing.id}
-                        onSelect={() => runCommand(() => setWing(wing.wing))}
-                        className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all group cursor-pointer aria-selected:border-indigo-500 aria-selected:ring-2 aria-selected:ring-indigo-500/20"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                          <wing.icon size={20} />
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 shadow-sm transition-all">
+                          <Zap size={18} />
                         </div>
-                        <span className="font-bold text-slate-900">{wing.label}</span>
-                      </Command.Item>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-bold text-slate-700">{action.label}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">Recently used</p>
+                        </div>
+                      </button>
                     ))}
                   </div>
-                </Command.Group>
-
-                <Command.Group heading={t.nav_commandPalette} className="mb-8">
-                  {navItems.map((item) => (
-                    <Command.Item
-                      key={item.id}
-                      onSelect={() => runCommand(item.action)}
-                      className="flex items-center justify-between p-4 rounded-2xl hover:bg-white hover:shadow-xl transition-all group cursor-pointer aria-selected:bg-white aria-selected:shadow-xl"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                          <item.icon size={20} />
-                        </div>
-                        <span className="font-bold text-slate-700 group-hover:text-indigo-900">{item.label}</span>
-                      </div>
-                      <ChevronRight size={16} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </Command.Item>
-                  ))}
-                </Command.Group>
-
-                <Command.Group heading={t.nav_quickActions}>
-                  {quickActions.map((action) => (
-                    <Command.Item
-                      key={action.id}
-                      onSelect={() => runCommand(() => alert(`Executed: ${action.label}`))}
-                      className="flex items-center justify-between p-4 rounded-2xl hover:bg-white hover:shadow-xl transition-all group cursor-pointer aria-selected:bg-white aria-selected:shadow-xl"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                          <action.icon size={20} />
-                        </div>
-                        <span className="font-bold text-slate-700 group-hover:text-indigo-900">{action.label}</span>
-                      </div>
-                      <kbd className="px-3 py-1.5 bg-slate-900 rounded-lg text-[10px] font-black text-white shadow-lg">{action.shortcut}</kbd>
-                    </Command.Item>
-                  ))}
-                </Command.Group>
-              </Command.List>
-
-              <div className="p-6 bg-slate-900 border-t border-slate-800 flex justify-between items-center text-[10px] font-bold text-slate-400">
-                <div className="flex gap-6">
-                  <span className="flex items-center gap-2 text-indigo-400"><LayoutDashboard size={14} /> {t.nav_nationalOs}</span>
-                  <span className="flex items-center gap-2 uppercase tracking-widest"><CommandIcon size={14} /> Control Layer</span>
                 </div>
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <BrainCircuit size={14} className="animate-pulse" /> GULA OS Intelligence (v4.2)
+              )}
+
+              {filteredItems.length > 0 ? (
+                <div className="space-y-1">
+                  <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Found Modules</h3>
+                  {filteredItems.map((item, index) => (
+                    <button
+                      key={item.to}
+                      onClick={() => handleSelect(item)}
+                      className={cn(
+                        "w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group",
+                        selectedIndex === index ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 translate-x-2" : "hover:bg-slate-50"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                        selectedIndex === index ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
+                      )}>
+                        <item.icon size={18} />
+                      </div>
+                      <div className="text-left flex-1">
+                        <p className={cn("text-sm font-bold", selectedIndex === index ? "text-white" : "text-slate-700")}>
+                          {item.label}
+                        </p>
+                        <p className={cn("text-[10px] font-medium", selectedIndex === index ? "text-white/70" : "text-slate-400")}>
+                          {item.section} • {item.subtext}
+                        </p>
+                      </div>
+                      {selectedIndex === index && <ArrowRight size={14} className="opacity-60" />}
+                    </button>
+                  ))}
                 </div>
-              </div>
-            </Command>
+              ) : query !== '' && (
+                <div className="py-20 text-center">
+                  <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-slate-200">
+                    <Search className="text-slate-300" size={32} />
+                  </div>
+                  <p className="text-slate-400 font-bold text-sm tracking-tight italic">
+                    No results found for "{query}". Try searching for patients or labs.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+               <div className="flex gap-4">
+                 <span className="flex items-center gap-1"><ArrowRight size={10} /> Select</span>
+                 <span className="flex items-center gap-1"><Command size={10} /> K Toggle</span>
+               </div>
+               <div className="flex items-center gap-2">
+                  <BrainCircuit size={12} className="text-indigo-400" />
+                  <span>GULA Command AI Engine v1.0</span>
+               </div>
+            </div>
           </motion.div>
         </div>
       )}

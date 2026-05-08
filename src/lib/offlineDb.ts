@@ -21,6 +21,7 @@ export interface OfflinePatient {
     pulse: number;
     spo2: number;
   };
+  clinicalSummary?: string;
   lastCached: number;
 }
 

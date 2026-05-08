@@ -162,7 +162,7 @@ export function useNavigation() {
         wing: wing as UserWing,
         ...config,
         items: config.items.filter(item => {
-          if (item.to.startsWith('/financial') && !import.meta.env.VITE_ENABLE_FINANCIAL_ENGINE) return false;
+          if (item.to.startsWith('/financial') && !(import.meta as any).env.VITE_ENABLE_FINANCIAL_ENGINE) return false;
           if (!item.roles) return true;
           return profile && item.roles.includes(profile.role);
         })

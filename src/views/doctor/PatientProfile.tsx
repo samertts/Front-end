@@ -8,12 +8,12 @@ import {
   TrendingUp, Download, Share2, ClipboardList,
   Stethoscope, Send, Plus, Zap, FileText, Search,
   History as HistoryIcon, Beaker, MapPin, BrainCircuit, Layers, Sparkles,
-  Shield, Lock, X, Clock, Loader2
+  Shield, Lock, X, Clock, Loader2, WifiOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { LabTestResult, PermissionType, ConsentDuration } from '../../types/domain';
-import { auth, db, handleFirestoreError } from '../../firebase';
+import { auth, db as db_fire, handleFirestoreError } from '../../firebase';
 import { 
   collection, 
   addDoc, 
@@ -145,10 +145,10 @@ export function PatientProfile() {
         updatedAt: serverTimestamp(),
       };
 
-      await addDoc(collection(db, 'consents'), requestData);
+      await addDoc(collection(db_fire, 'consents'), requestData);
 
       // Emit event for patient
-      await addDoc(collection(db, 'events'), {
+      await addDoc(collection(db_fire, 'events'), {
         type: 'consent_requested',
         recipientId: id || 'P-9021',
         senderId: auth.currentUser.uid,

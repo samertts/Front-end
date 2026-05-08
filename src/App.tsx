@@ -49,6 +49,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { TourProvider } from './contexts/TourContext';
 import { PermissionGuard } from './components/PermissionGuard';
 import { Toaster } from 'sonner';
+import { useUIStore } from './store/uiStore';
+import { cn } from './lib/utils';
 import { CommandPalette } from './components/CommandPalette';
 import { HelpAssistant } from './components/HelpAssistant';
 import { GlobalAiAssistant } from './components/GlobalAiAssistant';
@@ -205,7 +207,8 @@ function AnimatedRoutes() {
 
 function AppContent() {
   const { user, isLoading } = useAuth();
-  const { t } = useLanguage();
+  const { t, dir } = useLanguage();
+  const { isFocusMode } = useUIStore();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
@@ -251,6 +254,8 @@ function AppContent() {
     return <LandingAuthView />;
   }
 
+  const isRtl = dir === 'rtl';
+
   return (
     <BrowserRouter>
       <CommandPalette />
@@ -258,11 +263,19 @@ function AppContent() {
       <GlobalAiAssistant />
       <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
       <ScrollToTop />
-      <div className="flex min-h-screen bg-slate-50 font-sans antialiased selection:bg-indigo-100/50 transition-colors duration-500">
-      <Sidebar />
+      <div className={cn(
+        "flex min-h-screen bg-slate-50 font-sans antialiased selection:bg-indigo-100/50 transition-all duration-700 ease-in-out",
+        isFocusMode ? "p-0 overflow-hidden" : ""
+      )}>
+      {!isFocusMode && <Sidebar />}
 
-      <main className="lg:ml-72 flex-1 flex flex-col h-screen overflow-hidden rtl:lg:ml-0 rtl:lg:mr-72">
-        <TopBar />
+      <main className={cn(
+        "flex-1 flex flex-col transition-all duration-700 ease-in-out",
+        isFocusMode 
+          ? "w-screen h-screen m-0 rounded-0" 
+          : cn("lg:ml-72 h-screen overflow-hidden", isRtl ? "lg:ml-0 lg:mr-72" : "lg:ml-72")
+      )}>
+        {!isFocusMode && <TopBar />}
         
         <AnimatePresence>
           {isOffline && (
@@ -288,11 +301,21 @@ function AppContent() {
           )}
         </AnimatePresence>
 
-        <div className="flex-1 overflow-y-auto bg-slate-50 custom-scrollbar">
-          <div className="max-w-[1600px] mx-auto px-4 md:px-10 pt-10">
-            <Breadcrumbs />
+        <div className={cn(
+          "flex-1 overflow-y-auto custom-scrollbar transition-all duration-500",
+          isFocusMode ? "bg-white p-0" : "bg-slate-50"
+        )}>
+          {!isFocusMode && (
+            <div className="max-w-[1600px] mx-auto px-4 md:px-10 pt-10">
+              <Breadcrumbs />
+            </div>
+          )}
+          <div className={cn(
+            "transition-all duration-500",
+            isFocusMode ? "h-screen w-screen" : ""
+          )}>
+            <AnimatedRoutes />
           </div>
-          <AnimatedRoutes />
         </div>
       </main>
     </div>
