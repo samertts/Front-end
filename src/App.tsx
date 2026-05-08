@@ -40,6 +40,9 @@ import { LicensingAccreditation } from './views/ministry/LicensingAccreditation'
 import { FinanceResources } from './views/ministry/FinanceResources';
 import { UserGovernance } from './views/ministry/UserGovernance';
 import { IntegrationGateway } from './views/ministry/IntegrationGateway';
+import { ControlPlane } from './views/ministry/ControlPlane';
+import { MarketplaceView } from './views/financial/MarketplaceView';
+import { SimulationView } from './views/financial/SimulationView';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -50,6 +53,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { HelpAssistant } from './components/HelpAssistant';
 import { GlobalAiAssistant } from './components/GlobalAiAssistant';
 import { ShortcutsModal } from './components/ShortcutsModal';
+import { OfflineSyncService } from './lib/offlineSyncService';
 import { WifiOff, Activity as ActivityIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -84,6 +88,10 @@ function AnimatedRoutes() {
         <Route path="/patients/:id" element={<PatientProfile />} />
         <Route path="/appointments" element={<AppointmentsView />} />
         <Route path="/intelligence" element={<DoctorIntelligence />} />
+        
+        {/* Financial Engine */}
+        <Route path="/financial/marketplace" element={<MarketplaceView />} />
+        <Route path="/financial/simulation" element={<SimulationView />} />
 
         {/* Lab Wing */}
         <Route path="/lab/dashboard" element={<LabDashboard />} />
@@ -176,6 +184,11 @@ function AnimatedRoutes() {
             <IntegrationGateway />
           </PermissionGuard>
         } />
+        <Route path="/ministry/control-plane" element={
+          <PermissionGuard resource="infrastructure" action="manage" scope="global">
+            <ControlPlane />
+          </PermissionGuard>
+        } />
         <Route path="/ministry/analytics" element={
           <PermissionGuard resource="research" action="read">
             <ResearcherDashboard />
@@ -211,7 +224,10 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
+    const handleOnline = () => {
+      setIsOffline(false);
+      OfflineSyncService.sync();
+    };
     const handleOffline = () => setIsOffline(true);
 
     window.addEventListener('online', handleOnline);

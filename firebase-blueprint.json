@@ -131,6 +131,91 @@
         "payload": { "type": "object" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "Provider": {
+      "title": "Provider Financial Profile",
+      "description": "Labs and Clinics billing metrics and scores",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "plan": { "type": "string", "enum": ["free", "basic", "premium", "institutional"] },
+        "qualityScore": { "type": "number", "description": "0-10 rating" },
+        "rating": { "type": "number" },
+        "speedScore": { "type": "number" },
+        "priceScore": { "type": "number" },
+        "reliability": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["name", "plan"]
+    },
+    "Subscription": {
+      "title": "Financial Subscription",
+      "description": "Provider service plan and status",
+      "type": "object",
+      "properties": {
+        "providerId": { "type": "string" },
+        "plan": { "type": "string" },
+        "status": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["providerId", "plan"]
+    },
+    "Transaction": {
+      "title": "Financial Transaction",
+      "description": "Ledger of provider billing events",
+      "type": "object",
+      "properties": {
+        "providerId": { "type": "string" },
+        "type": { "type": "string", "enum": ["test_fee", "subscription", "ad_spend", "credit"] },
+        "amount": { "type": "number" },
+        "testId": { "type": "string", "description": "Optional link to specific test" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["providerId", "type", "amount"]
+    },
+    "AdCampaign": {
+      "title": "Ad Campaign",
+      "description": "Provider visibility settings",
+      "type": "object",
+      "properties": {
+        "providerId": { "type": "string" },
+        "bid": { "type": "number" },
+        "dailyLimit": { "type": "number" },
+        "spentToday": { "type": "number" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["providerId", "bid"]
+    },
+    "FraudLog": {
+      "title": "Fraud Log",
+      "description": "Ad abuse and click fraud records",
+      "type": "object",
+      "properties": {
+        "providerId": { "type": "string" },
+        "reason": { "type": "string" },
+        "severity": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "MarketBenchmark": {
+      "title": "Market Benchmark",
+      "description": "Aggregated price/speed data by test type",
+      "type": "object",
+      "properties": {
+        "testType": { "type": "string" },
+        "avgPrice": { "type": "number" },
+        "avgTime": { "type": "number" }
+      }
+    },
+    "ClinicalBehavior": {
+      "title": "Clinical Behavior",
+      "description": "Patterns of doctor testing volume",
+      "type": "object",
+      "properties": {
+        "doctorId": { "type": "string" },
+        "avgTestsPerCase": { "type": "number" },
+        "deviationScore": { "type": "number" }
+      }
     }
   },
   "firestore": {
@@ -140,6 +225,13 @@
     "lab_tasks/{taskId}": { "schema": "LabTask", "description": "Work queue management" },
     "audit_logs/{logId}": { "schema": "AuditLog", "description": "Immutable system logs" },
     "consents/{consentId}": { "schema": "Consent", "description": "Trust registry for data sharing" },
-    "events/{eventId}": { "schema": "GulaEvent", "description": "Cross-wing communication relay" }
+    "events/{eventId}": { "schema": "GulaEvent", "description": "Cross-wing communication relay" },
+    "financial_providers/{providerId}": { "schema": "Provider", "description": "Financial profiles for institutions" },
+    "financial_subscriptions/{subId}": { "schema": "Subscription", "description": "Billing subscriptions" },
+    "financial_transactions/{txId}": { "schema": "Transaction", "description": "Billing ledger" },
+    "ad_campaigns/{campId}": { "schema": "AdCampaign", "description": "Visibility management" },
+    "fraud_logs/{logId}": { "schema": "FraudLog", "description": "Ad security logs" },
+    "market_benchmarks/{type}": { "schema": "MarketBenchmark", "description": "Test performance benchmarks" },
+    "clinical_behaviors/{docId}": { "schema": "ClinicalBehavior", "description": "Clinical volume tracking" }
   }
 }

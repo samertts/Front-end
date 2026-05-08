@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { TaskService } from '../../services/taskService';
+import { OfflineSyncService, useOnlineStatus } from '../../lib/offlineSyncService';
+import { db } from '../../lib/offlineDb';
 import { 
   Microscope, PlayCircle, CheckCircle2, AlertCircle, 
   Clock, User, Shield, Zap, Filter, Search,
@@ -15,7 +19,7 @@ import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { ResultEntryUI } from '../../components/lab/ResultEntryUI';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
-import { ResultCertificate } from '../../components/lab/ResultCertificate';
+const ResultCertificate = React.lazy(() => import('../../components/lab/ResultCertificate').then(m => ({ default: m.ResultCertificate })));
 
 type TaskStatus = 'unassigned' | 'claimed' | 'in-progress' | 'review' | 'completed';
 type TaskPriority = 'routine' | 'urgent'| 'stat';
@@ -40,61 +44,14 @@ interface LabTask {
 export function WorkQueue() {
   const { t } = useLanguage();
   const { profile } = useAuth();
+  
+  const tasks = useLiveQuery(() => db.tasks.toArray()) || [];
+  
   const [viewMode, setViewMode] = useState<'technician' | 'pathologist' | 'manager'>('technician');
   const [filterSection, setFilterSection] = useState('All');
   const [sortBy, setSortBy] = useState<'priority' | 'due'>('priority');
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
-  const [isResultEntryOpen, setIsResultEntryOpen] = useState<LabTask | null>(null);
-
-  const [tasks, setTasks] = useState<LabTask[]>([
-    { 
-      id: 'T1', 
-      sampleId: 'SMP-8832', 
-      patientId: 'PAT-0044',
-      patientName: 'Ahmed Mohammed Ali',
-      testName: 'Cardiac Markers (Troponin I)', 
-      priority: 'stat', 
-      status: 'unassigned', 
-      slaMinutes: 30, 
-      timeRemaining: 5, 
-      section: 'Biochemistry', 
-      dueAt: new Date(Date.now() + 5 * 60000),
-      notes: 'Patient showing symptoms of acute myocardial infarction. Expedite results.',
-      attachments: ['ECG_Report.pdf', 'Clinical_History.docx']
-    },
-    { 
-      id: 'T2', 
-      sampleId: 'SMP-1029', 
-      patientId: 'PAT-8812',
-      patientName: 'Sarah Jenkins',
-      testName: 'CBC + Differential', 
-      priority: 'urgent', 
-      status: 'claimed', 
-      slaMinutes: 60, 
-      timeRemaining: 25, 
-      owner: 'Technician Ali', 
-      section: 'Hematology', 
-      dueAt: new Date(Date.now() + 25 * 60000),
-      notes: 'Post-operative monitoring. Check for leukocyte count elevation.',
-      attachments: ['Lab_Order_Request.pdf']
-    },
-    { 
-      id: 'T3', 
-      sampleId: 'SMP-9921', 
-      patientId: 'PAT-3321',
-      patientName: 'Michael Chen',
-      testName: 'HbA1c', 
-      priority: 'routine', 
-      status: 'in-progress', 
-      slaMinutes: 120, 
-      timeRemaining: 95, 
-      owner: 'Technician Leyla', 
-      section: 'Biochemistry', 
-      dueAt: new Date(Date.now() + 95 * 60000),
-      notes: 'Routine diabetic follow-up. Reviewing historical glucose trend.',
-      attachments: []
-    },
-  ]);
+  const [isResultEntryOpen, setIsResultEntryOpen] = useState<any | null>(null);
 
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
@@ -128,11 +85,30 @@ export function WorkQueue() {
     });
   };
   
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [syncQueue, setSyncQueue] = useState<{ taskId: string; action: TaskStatus; timestamp: number }[]>([]);
+  const isOnline = useOnlineStatus();
+  const isOffline = !isOnline;
+  const syncQueueCount = useLiveQuery(() => db.syncQueue.count()) || 0;
+  
+  // Transform offline tasks to lab tasks
+  const labTasks: LabTask[] = (tasks || []).map(t => ({
+    id: t.id,
+    sampleId: t.metadata?.sampleId || 'N/A',
+    patientId: t.metadata?.patientId || 'N/A',
+    patientName: t.metadata?.patientName || 'N/A',
+    testName: t.title,
+    priority: t.priority as TaskPriority,
+    status: t.status as TaskStatus,
+    slaMinutes: t.metadata?.slaMinutes || 60,
+    timeRemaining: t.metadata?.timeRemaining || 0,
+    owner: t.metadata?.owner,
+    section: t.metadata?.section || 'General',
+    dueAt: new Date(t.updatedAt),
+    notes: t.description,
+    attachments: t.metadata?.attachments
+  }));
   const [activeWorkId, setActiveWorkId] = useState<string | null>(null);
   const [criticalAlert, setCriticalAlert] = useState<{ message: string; severity: 'high' | 'critical' } | null>(null);
-  const [viewingCertificate, setViewingCertificate] = useState<LabTask | null>(null);
+  const [viewingCertificate, setViewingCertificate] = useState<any | null>(null);
 
   // Keyboard Shortcuts (UX Requirement)
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
@@ -156,11 +132,9 @@ export function WorkQueue() {
 
   useEffect(() => {
     const handleOnline = () => {
-      setIsOffline(false);
       toast.success('System back online. Syncing changes...');
     };
     const handleOffline = () => {
-      setIsOffline(true);
       toast.error('Connection lost. Entering offline mode.');
     };
 
@@ -180,44 +154,31 @@ export function WorkQueue() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isOffline && syncQueue.length > 0) {
-      const processQueue = async () => {
-        for (const item of syncQueue) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          setTasks(prev => prev.map(t => t.id === item.taskId ? { ...t, status: item.action } : t));
-        }
-        setSyncQueue([]);
-        toast.success('Offline changes synchronized successfully');
-      };
-      processQueue();
-    }
-  }, [isOffline, syncQueue]);
-
   const handleClaim = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
     triggerConfirm(
       'Claim Laboratory Task',
-      `Assigning sample #${task.sampleId} (${task.testName}) to your queue. Are you ready to begin processing?`,
-      () => {
+      `Assigning sample #${task.metadata?.sampleId || 'UNK'} (${task.title}) to your queue. Are you ready to begin processing?`,
+      async () => {
         setIsProcessing(taskId);
-        setTimeout(() => {
-          setTasks(prev => prev.map(task => 
-            task.id === taskId ? { ...task, status: 'claimed', owner: profile?.name || 'You' } : task
-          ));
-          setIsProcessing(null);
+        try {
+          await TaskService.updateTaskStatus(taskId, 'claimed');
           toast.success('Task Claimed', {
-            description: `Sample ${task.sampleId} assigned to your queue`
+            description: `Sample ${task.metadata?.sampleId || 'UNK'} assigned to your queue`
           });
-        }, 600);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsProcessing(null);
+        }
       },
       'primary'
     );
   };
 
-  const updateTaskStatus = (taskId: string, newStatus: TaskStatus) => {
+  const updateTaskStatus = async (taskId: string, newStatus: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
@@ -225,35 +186,17 @@ export function WorkQueue() {
       const isHighRisk = task.priority === 'stat' || task.priority === 'urgent';
       triggerConfirm(
         'Confirm Clinical Action',
-        `You are about to mark sample #${task.sampleId} as ${newStatus.toUpperCase()}. This action is irreversible. ${isHighRisk ? 'STAT/Urgent samples require strict calibration check.' : ''}`,
-        () => executeStatusUpdate(taskId, newStatus),
+        `You are about to mark sample #${task.metadata?.sampleId || 'UNK'} as ${newStatus.toUpperCase()}. This action is irreversible.`,
+        () => TaskService.updateTaskStatus(taskId, 'completed'),
         isHighRisk ? 'danger' : 'primary'
       );
       return;
     }
 
-    executeStatusUpdate(taskId, newStatus);
+    await TaskService.updateTaskStatus(taskId, newStatus as any);
   };
 
-  const executeStatusUpdate = (taskId: string, newStatus: TaskStatus) => {
-    if (isOffline) {
-      setSyncQueue(prev => [...prev, { taskId, action: newStatus, timestamp: Date.now() }]);
-      toast('Change queued for synchronization', { icon: '📥' });
-      return;
-    }
-
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
-    toast.success(`Task status updated to ${newStatus}`);
-    
-    if (activeWorkId === taskId) {
-      localStorage.removeItem('active_lab_work');
-      setActiveWorkId(null);
-    }
-  };
-
-  const startWork = (task: LabTask) => {
+  const startWork = (task: any) => {
     setIsResultEntryOpen(task);
     setActiveWorkId(task.id);
     localStorage.setItem('active_lab_work', JSON.stringify({ taskId: task.id, startTime: Date.now() }));
@@ -274,15 +217,17 @@ export function WorkQueue() {
     setSelectedTasks(newSelected);
   };
 
-  const handleBulkClaim = () => {
+  const handleBulkClaim = async () => {
     const taskIds = Array.from(selectedTasks);
-    setTasks(prev => prev.map(task => 
-      taskIds.includes(task.id) && task.status === 'unassigned'
-        ? { ...task, status: 'claimed', owner: profile?.name || 'You' } 
-        : task
-    ));
-    setSelectedTasks(new Set());
-    toast.success(`Claimed ${taskIds.length} tasks`);
+    try {
+      for (const id of taskIds) {
+        await TaskService.updateTaskStatus(id, 'claimed');
+      }
+      setSelectedTasks(new Set());
+      toast.success(`Claimed ${taskIds.length} tasks`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const sections = ['All', 'Hematology', 'Biochemistry', 'Serology', 'Microbiology'];
@@ -317,7 +262,7 @@ export function WorkQueue() {
               <WifiOff size={18} className="shrink-0" />
               <div className="flex flex-col">
                 <span className="text-xs font-black uppercase tracking-[0.2em] leading-none">Offline Mode Active</span>
-                <span className="text-[9px] font-bold opacity-80 mt-1">{syncQueue.length} changes queued for synchronization</span>
+                <span className="text-[9px] font-bold opacity-80 mt-1">{syncQueueCount} changes queued for synchronization</span>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -384,13 +329,12 @@ export function WorkQueue() {
                   
                   {/* State Control Simulation */}
                   <div className="flex bg-white/10 p-1 rounded-xl border border-white/5 shrink-0 gap-1 ml-2 scale-90 translate-y-[-1px]">
-                    <button 
-                      onClick={() => setIsOffline(!isOffline)}
-                      className={cn("p-1.5 rounded-lg transition-all", isOffline ? "bg-emerald-500 text-white shadow-lg" : "text-white/40 hover:bg-white/10")}
-                      title="Simulate Network Drop"
+                    <div 
+                      className={cn("p-1.5 rounded-lg transition-all", isOffline ? "bg-amber-500 text-white shadow-lg" : "text-white/40")}
+                      title="Network Status"
                     >
-                      {isOffline ? <Wifi size={12} /> : <WifiOff size={12} />}
-                    </button>
+                      {isOffline ? <WifiOff size={12} /> : <Wifi size={12} />}
+                    </div>
                     <button 
                       onClick={() => setCriticalAlert({ message: 'Major analyzer calibration error detected. Manual routing required for critical samples.', severity: 'critical' })}
                       className="p-1.5 text-white/40 hover:bg-white/10 hover:text-white rounded-lg transition-all"
@@ -477,7 +421,7 @@ export function WorkQueue() {
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Active Execution</h2>
                   <div className="flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded-full shadow-lg shadow-indigo-100">
                      <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                     <span className="text-[10px] font-black tracking-widest">{tasks.length} Samples</span>
+                     <span className="text-[10px] font-black tracking-widest">{labTasks.length} Samples</span>
                   </div>
                </div>
                
@@ -532,7 +476,7 @@ export function WorkQueue() {
 
             <div className="space-y-4">
                <AnimatePresence mode="popLayout">
-                  {tasks
+                  {labTasks
                     .filter(t => filterSection === 'All' || t.section === filterSection)
                     .sort((a, b) => {
                        if (sortBy === 'priority') {

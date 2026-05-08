@@ -25,10 +25,25 @@ import { AITriageAssistant } from '../../components/doctor/AITriageAssistant';
 import { PrescriptionBuilder } from '../../components/doctor/PrescriptionBuilder';
 import { ClinicalNotes } from '../../components/doctor/ClinicalNotes';
 
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/offlineDb';
+import { PatientService } from '../../services/patientService';
+import { useOnlineStatus } from '../../lib/offlineSyncService';
+
 export function PatientProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const isOnline = useOnlineStatus();
+
+  const patient = useLiveQuery(
+    async () => {
+      if (!id) return null;
+      return await PatientService.getPatientById(id);
+    },
+    [id]
+  );
+
   const [activeTab, setActiveTab] = useState<'timeline' | 'lab' | 'radiology' | 'prescriptions' | 'notes' | 'ai' | 'history' | 'synthesis' | 'triage'>('synthesis');
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
@@ -41,19 +56,14 @@ export function PatientProfile() {
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock patient data
-  const patient = {
-    name: "Ahmed Mansour",
-    id: "P-9021",
-    nationalHealthId: "GULA-882-99-XC",
-    age: 42,
-    gender: "Male",
-    blood: "A+",
-    weight: "78kg",
-    height: "176cm",
-    lastVisit: "2024-04-12",
-    clinicalSummary: "Patient presenting with recurrent abdominal pain and fatigue. History of mild hypertension."
-  };
+  if (!patient) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-8 animate-pulse text-center py-40">
+        <Loader2 className="animate-spin mx-auto text-indigo-600 mb-4" size={40} />
+        <h2 className="text-xl font-bold text-slate-400">Loading Patient Records...</h2>
+      </div>
+    );
+  }
 
   // Check for low bandwidth preference
   useEffect(() => {
@@ -199,19 +209,24 @@ export function PatientProfile() {
                    <Skeleton className="h-4 w-32 bg-white/5" />
                  </div>
                ) : (
-                 <>
-                   <div className="flex items-center gap-3">
-                      <h1 className="text-2xl font-bold">{patient.name}</h1>
-                      <span className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest">{patient.id}</span>
-                      <span className="px-3 py-1 bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 rounded-full text-[10px] font-black uppercase tracking-widest">
-                        ID: {patient.nationalHealthId}
-                      </span>
-                   </div>
-                   <div className="flex gap-4 mt-1 opacity-60 text-xs font-medium">
-                      <span>{patient.age}y • {patient.gender}</span>
-                      <span>{patient.blood} Group</span>
-                   </div>
-                 </>
+                  <>
+                    <div className="flex items-center gap-3">
+                       <h1 className="text-2xl font-bold">{patient.name}</h1>
+                       <span className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest">{patient.id}</span>
+                       <span className="px-3 py-1 bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 rounded-full text-[10px] font-black uppercase tracking-widest">
+                         ID: {patient.nationalId}
+                       </span>
+                    </div>
+                    <div className="flex gap-4 mt-1 opacity-60 text-xs font-medium text-white/60">
+                       <span>{patient.age}y • {patient.gender}</span>
+                       <span>{patient.bloodType} Group</span>
+                       {!isOnline && (
+                         <span className="flex items-center gap-1.5 text-amber-400 font-black uppercase tracking-widest text-[9px]">
+                           <WifiOff size={12} /> Local Cache
+                         </span>
+                       )}
+                    </div>
+                  </>
                )}
             </div>
          </div>

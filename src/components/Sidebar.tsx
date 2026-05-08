@@ -26,6 +26,8 @@ import {
   Building2,
   Code2,
   History,
+  TrendingUp,
+  ShoppingCart,
   ChevronDown,
   ChevronRight,
   Pin,
@@ -41,13 +43,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { UserWing } from '../types/domain';
+import { useNavigationStore, Wing } from '../store/navigationStore';
+import { WingSwitcher } from './navigation/WingSwitcher';
+import { WingMenu } from './navigation/WingMenu';
+import { useNavigation } from '../hooks/useNavigation';
 
 export function Sidebar() {
   const { t, dir } = useLanguage();
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeWing, setActiveWing] = useState<UserWing>('citizen');
+  const [isWingMenuOpen, setIsWingMenuOpen] = useState(false);
+  const { currentWing, setWing: setStoreWing } = useNavigationStore();
+  const { navSections } = useNavigation();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [pinnedPaths, setPinnedPaths] = useState<string[]>([]);
   
@@ -78,144 +86,15 @@ export function Sidebar() {
 
   useEffect(() => {
     if (profile?.wing) {
-      setActiveWing(profile.wing);
+      setStoreWing(profile.wing as Wing);
       setExpandedSections(prev => ({ ...prev, [profile.wing]: true }));
     }
-  }, [profile]);
+  }, [profile, setStoreWing]);
 
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/');
   };
-
-  const availableWings = useMemo((): UserWing[] => {
-    if (!profile) return ['citizen'];
-    const role = profile.role;
-    
-    const wingMapping: Record<string, UserWing[]> = {
-      master_admin: ['admin', 'ministry', 'doctor', 'lab', 'citizen', 'researcher', 'regulator', 'system'],
-      admin: ['admin', 'ministry', 'doctor', 'lab', 'citizen', 'researcher', 'regulator'],
-      ministry_admin: ['ministry', 'citizen'],
-      ministry_analyst: ['ministry', 'citizen', 'researcher'],
-      ministry_inspector: ['ministry', 'citizen', 'regulator'],
-      physician: ['doctor', 'citizen'],
-      technician: ['lab', 'citizen'],
-      pathologist: ['lab', 'citizen'],
-      lab_admin: ['lab', 'citizen'],
-      researcher: ['researcher', 'citizen'],
-      regulator: ['regulator', 'citizen'],
-      auditor: ['regulator', 'citizen'],
-      integration_service: ['admin', 'system'],
-      citizen: ['citizen']
-    };
-
-    return wingMapping[role] || ['citizen'];
-  }, [profile]);
-
-  const navSections = useMemo(() => {
-    const sections: Record<UserWing, { icon: any; label: string; items: any[] }> = {
-      doctor: {
-        icon: Stethoscope,
-        label: t.doctorWing,
-        items: [
-          { to: '/', icon: LayoutDashboard, label: t.dashboard, subtext: t.clinicalOps },
-          { to: '/patients', icon: User, label: t.healthRecords, subtext: t.patientRegistry },
-          { to: '/appointments', icon: Calendar, label: t.appointments, subtext: t.schedules },
-          { to: '/intelligence', icon: BrainCircuit, label: t.medicalIntelligence, subtext: t.aiSupport },
-        ],
-      },
-      lab: {
-        icon: Microscope,
-        label: t.labWing,
-        items: [
-          { to: '/lab/dashboard', icon: LayoutDashboard, label: t.dashboard, subtext: t.limsOverview },
-          { to: '/lab/queue', icon: TestTube, label: t.workQueue, subtext: t.processing },
-          { to: '/lab/samples', icon: Box, label: t.sampleTracking, subtext: t.inventory },
-          { to: '/lab/qc', icon: ShieldCheck, label: t.qcControl, subtext: t.standardization },
-          { to: '/lab/imaging', icon: ImageIcon, label: "Imaging Lab", subtext: "Image Intelligence" },
-          { to: '/lab/devices', icon: Microscope, label: t.deviceManagement, subtext: t.connectivity },
-        ],
-      },
-      citizen: {
-        icon: User,
-        label: t.citizenWing,
-        items: [
-          { to: '/citizen/dashboard', icon: LayoutDashboard, label: t.dashboard, subtext: t.healthOS },
-          { to: '/citizen/assistant', icon: BrainCircuit, label: "AI Assistant", subtext: "GULA Intelligence" },
-          { to: '/citizen/profile', icon: ActivityIcon, label: t.myHealth, subtext: t.healthTrends },
-          { to: '/citizen/results', icon: TestTube, label: t.labResults, subtext: t.interpretation },
-          { to: '/citizen/medications', icon: Pill, label: t.medicineCabinet, subtext: t.medicationAdherence },
-          { to: '/citizen/appointments', icon: Calendar, label: t.appointments, subtext: t.consultDoctor },
-          { to: '/citizen/family', icon: Users, label: t.familyManagement, subtext: t.familyNetwork },
-          { to: '/citizen/security', icon: ShieldCheck, label: t.privacyDashboard, subtext: t.dataControl },
-        ],
-      },
-      admin: {
-        icon: Shield,
-        label: t.adminWing,
-        items: [
-          { to: '/', icon: LayoutDashboard, label: t.systemDashboard, subtext: t.globalStatus, roles: ['master_admin', 'admin'] },
-          { to: '/admin/audit', icon: History, label: t.auditLogs, subtext: t.compliance, roles: ['master_admin', 'admin', 'ministry_inspector'] },
-          { to: '/admin/architecture', icon: Code2, label: t.systemsArchitecture, subtext: t.globalStatus, roles: ['master_admin'] },
-          { to: '/admin/integrations', icon: Globe, label: t.connectedApis, subtext: t.interoperability, roles: ['master_admin', 'admin', 'integration_service'] },
-          { to: '/admin/infrastructure', icon: Server, label: t.clusterHealth, subtext: t.nodeNetwork, roles: ['master_admin'] },
-          { to: '/settings', icon: Settings, label: t.infrastructure, subtext: t.settings, roles: ['master_admin', 'admin', 'integration_service'] },
-        ],
-      },
-      researcher: {
-        icon: BrainCircuit,
-        label: t.researcherWing,
-        items: [
-          { to: '/research/analytics', icon: BrainCircuit, label: t.predictiveTrends, subtext: t.aiIntelligence, roles: ['researcher', 'ministry_analyst', 'master_admin'] },
-          { to: '/research/population', icon: Globe, label: t.populationHealth, subtext: t.gisSurveillance, roles: ['researcher', 'ministry_analyst', 'master_admin'] },
-        ],
-      },
-      regulator: {
-        icon: ShieldCheck,
-        label: t.regulatorWing,
-        items: [
-          { to: '/admin/audit', icon: History, label: t.auditLogs, subtext: t.compliance, roles: ['regulator', 'ministry_inspector', 'master_admin', 'auditor'] },
-          { to: '/lab/dashboard', icon: LayoutDashboard, label: t.standardization, subtext: t.qualityControl, roles: ['regulator', 'master_admin'] },
-        ],
-      },
-      ministry: {
-        icon: Building2,
-        label: t.ministryWing,
-        items: [
-          { to: '/ministry/dashboard', icon: LayoutDashboard, label: t.nationalCommand, subtext: t.populationHealth, roles: ['ministry_admin', 'ministry_analyst', 'master_admin'] },
-          { to: '/ministry/epidemiology', icon: Globe, label: t.epiSurveillance, subtext: t.activeOutbreaks, roles: ['ministry_analyst', 'master_admin', 'researcher'] },
-          { to: '/ministry/labs', icon: Microscope, label: t.labControl, subtext: t.labThroughput, roles: ['ministry_admin', 'master_admin'] },
-          { to: '/ministry/audit', icon: History, label: t.complianceAudit, subtext: t.integrityRating, roles: ['ministry_inspector', 'master_admin', 'regulator'] },
-          { to: '/ministry/emergency', icon: QuickZap, label: t.emergencyCenter, subtext: t.criticalAlerts, roles: ['ministry_admin', 'master_admin'] },
-          { to: '/ministry/licensing', icon: ClipboardList, label: t.regulatoryControl, subtext: t.regulator, roles: ['ministry_inspector', 'master_admin'] },
-          { to: '/ministry/finance', icon: CreditCard, label: t.healthFinance, subtext: t.financeResources, roles: ['ministry_admin', 'master_admin'] },
-          { to: '/ministry/users', icon: Users, label: t.userGovernance, subtext: t.iamPolicies, roles: ['ministry_admin', 'master_admin'] },
-          { to: '/ministry/integration', icon: Globe, label: t.integrationGateway, subtext: t.interoperabilityHub, roles: ['ministry_admin', 'master_admin'] },
-        ],
-      },
-      system: {
-        icon: Server,
-        label: "System",
-        items: [
-          { to: '/', icon: LayoutDashboard, label: t.systemDashboard, subtext: t.globalStatus, roles: ['master_admin'] },
-          { to: '/admin/audit', icon: History, label: t.auditLogs, subtext: t.compliance, roles: ['master_admin'] },
-          { to: '/admin/architecture', icon: Code2, label: t.systemsArchitecture, subtext: t.globalStatus, roles: ['master_admin'] },
-        ],
-      }
-    };
-
-    return Object.entries(sections)
-      .filter(([wing]) => availableWings.includes(wing as UserWing))
-      .map(([wing, config]) => ({
-        wing: wing as UserWing,
-        ...config,
-        items: config.items.filter(item => {
-          if (!item.roles) return true;
-          return profile && item.roles.includes(profile.role);
-        })
-      }))
-      .filter(section => section.items.length > 0);
-  }, [availableWings, t, profile]);
 
   const pinnedItems = useMemo(() => {
     const allItems = navSections.flatMap(s => s.items);
@@ -308,58 +187,17 @@ export function Sidebar() {
 
           <div className="bg-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.3)] p-1.5 rounded-[2.5rem] border border-white/10 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/5 pointer-events-none" />
-            <div className="flex items-center justify-between px-5 py-2 border-b border-white/5 mb-1 relative z-10">
-               <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.25em]">{t.switchWing}</span>
-               <div className="flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_bg-emerald-400]" />
-                 <span className="text-[9px] font-black text-emerald-400/90 uppercase tracking-tighter italic">N_LINK: ACTIVE</span>
-               </div>
+            <div className="px-1">
+              <WingSwitcher />
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-1">
-              {availableWings.map((wing) => (
-                <button
-                  key={wing}
-                  onClick={() => {
-                    setActiveWing(wing);
-                    setExpandedSections(prev => ({ ...prev, [wing]: true }));
-                    if (wing === 'doctor') navigate('/');
-                    if (wing === 'lab') navigate('/lab/dashboard');
-                    if (wing === 'citizen') navigate('/citizen/profile');
-                    if (wing === 'admin') navigate('/');
-                    if (wing === 'ministry') navigate('/ministry/dashboard');
-                    if (wing === 'researcher') navigate('/research/analytics');
-                    if (wing === 'regulator') navigate('/admin/audit');
-                  }}
-                  className={cn(
-                    "flex-none flex flex-col items-center justify-center py-3 px-3 min-w-[70px] rounded-[2rem] transition-all relative group",
-                    activeWing === wing 
-                      ? "bg-white shadow-[0_0_20px_rgba(99,102,241,0.2)] text-indigo-600" 
-                      : "text-white/40 hover:text-white/80 hover:bg-white/5"
-                  )}
-                >
-                  <div className="relative z-10 transition-transform group-hover:scale-110">
-                    {wing === 'doctor' && <Stethoscope size={18} />}
-                    {wing === 'lab' && <Microscope size={18} />}
-                    {wing === 'citizen' && <User size={18} />}
-                    {wing === 'admin' && <Shield size={18} />}
-                    {wing === 'ministry' && <Building2 size={18} />}
-                    {wing === 'researcher' && <BrainCircuit size={18} />}
-                    {wing === 'regulator' && <Shield size={18} />}
-                  </div>
-                  
-                  <span className="text-[8px] font-black mt-2 uppercase leading-none tracking-tighter">
-                    {wing === 'admin' ? t.adminWing.split(' ')[0] : t[`${wing}Wing` as keyof typeof t]?.toString().split(' ')[0]}
-                  </span>
-
-                  {activeWing === wing && (
-                     <motion.div 
-                       layoutId="wing-glow"
-                       className="absolute inset-0 bg-white rounded-[2rem] -z-0"
-                     />
-                  )}
-                </button>
-              ))}
-            </div>
+            
+            <button 
+              onClick={() => setIsWingMenuOpen(true)}
+              className="w-full mt-2 py-2 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2 group active:scale-95"
+            >
+              <Grid size={12} className="group-hover:rotate-90 transition-transform" />
+              <span className="text-[9px] font-black uppercase tracking-widest">Global Wing Directory</span>
+            </button>
           </div>
         </div>
 
@@ -521,6 +359,8 @@ export function Sidebar() {
           className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm lg:hidden"
         />
       )}
+
+      <WingMenu isOpen={isWingMenuOpen} onClose={() => setIsWingMenuOpen(false)} />
     </>
   );
 }

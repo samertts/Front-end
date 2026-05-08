@@ -1,6 +1,6 @@
 {
-  "name": "Remix: GULA Medical \u0026 LIMS Infrastructure",
-  "description": "Enterprise-grade Decision Intelligence and LIMS platform. Transforms raw clinical data into actionable insights with predictive forecasting, real-time alert protocols, and an integrated execution work queue.",
+  "name": "GULA | National Health Operating System",
+  "description": "Sovereign health digital infrastructure for national resilience. Integrates deep operational control, zero-trust security architecture, and autonomous self-healing protocols to manage clinical logistics and population health at scale.",
   "requestFramePermissions": [
     "camera",
     "geolocation"

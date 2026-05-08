@@ -457,6 +457,19 @@ export interface Translation {
   pendingInspections: string;
   regulatoryViolations: string;
   searchFacility: string;
+  cp_controlPlane: string;
+  cp_chaosEngine: string;
+  cp_selfHealing: string;
+  cp_sovereignIntelligence: string;
+  cp_digitalTwin: string;
+  cp_zeroTrustAudit: string;
+  cp_resilienceScore: string;
+  cp_activeSimulations: string;
+  cp_incidentResponse: string;
+  cp_predictiveAnalytics: string;
+  cp_forensicLogs: string;
+  cp_edgeNodes: string;
+  cp_nationalApiGateway: string;
   filters: string;
   applicationId: string;
   facilityName: string;
@@ -585,6 +598,21 @@ export interface Translation {
   autoEscalation: string;
   crossEntityWorkflow: string;
   realtimeCommand: string;
+  nav_globalSearch: string;
+  nav_commandPalette: string;
+  nav_favorites: string;
+  nav_suggested: string;
+  nav_recent: string;
+  nav_quickActions: string;
+  nav_systemStatus: string;
+  nav_activeSession: string;
+  nav_switchWing: string;
+  nav_nationalOs: string;
+  nav_command_goDashboard: string;
+  nav_command_openPatient: string;
+  nav_command_switchWing: string;
+  nav_command_searchLab: string;
+  nav_command_viewAudit: string;
   dataTranslator: string;
   deviceIntegration: string;
   crossCountrySync: string;
@@ -1303,6 +1331,19 @@ export const translations: Record<Language, Translation> = {
     pendingInspections: "Pending Inspections",
     regulatoryViolations: "Regulatory Violations",
     searchFacility: "Search facility name...",
+    cp_controlPlane: "National Control Plane",
+    cp_chaosEngine: "Chaos Resilience Engine",
+    cp_selfHealing: "Self-Healing Protocols",
+    cp_sovereignIntelligence: "Sovereign Intelligence",
+    cp_digitalTwin: "Facility Digital Twin",
+    cp_zeroTrustAudit: "Zero Trust Forensic Audit",
+    cp_resilienceScore: "Resilience Score",
+    cp_activeSimulations: "Active Simulations",
+    cp_incidentResponse: "Incident Response",
+    cp_predictiveAnalytics: "Predictive Analytics",
+    cp_forensicLogs: "Forensic Logs",
+    cp_edgeNodes: "Edge Nodes (Offline Sync)",
+    cp_nationalApiGateway: "National API Gateway",
     filters: "Filters",
     applicationId: "Application ID",
     facilityName: "Facility Name",
@@ -1741,6 +1782,21 @@ export const translations: Record<Language, Translation> = {
     never: "Never",
     authorizeAndSync: "Authorize & Sync",
     emergencyProtocolDesc: "Emergency access protocol for critical situations",
+    nav_globalSearch: "Global Search (Ctrl+K)",
+    nav_commandPalette: "Command Palette",
+    nav_favorites: "Favorites",
+    nav_suggested: "Suggested",
+    nav_recent: "Recently Used",
+    nav_quickActions: "Quick Actions",
+    nav_systemStatus: "System Status",
+    nav_activeSession: "Active Session",
+    nav_switchWing: "Switch Wing",
+    nav_nationalOs: "National Health OS",
+    nav_command_goDashboard: "Go to Dashboard",
+    nav_command_openPatient: "Open Patient Record",
+    nav_command_switchWing: "Switch to Wing...",
+    nav_command_searchLab: "Search Lab Samples",
+    nav_command_viewAudit: "View Audit Logs",
   },
   AR: {
     appName: "منصة جولا",
@@ -2171,6 +2227,19 @@ export const translations: Record<Language, Translation> = {
     pendingInspections: "عمليات التفتيش المعلقة",
     regulatoryViolations: "المخالفات التنظيمية",
     searchFacility: "ابحث عن اسم المنشأة...",
+    cp_controlPlane: "لوحة التحكم الوطنية",
+    cp_chaosEngine: "محرك مرونة الفوضى",
+    cp_selfHealing: "بروتوكولات الإصلاح الذاتي",
+    cp_sovereignIntelligence: "الذكاء السيادي",
+    cp_digitalTwin: "التوأم الرقمي للمنشأة",
+    cp_zeroTrustAudit: "تدقيق الطب الشرعي لعدم الثقة",
+    cp_resilienceScore: "درجة المرونة",
+    cp_activeSimulations: "المحاكاة النشطة",
+    cp_incidentResponse: "الاستجابة للحوادث",
+    cp_predictiveAnalytics: "التحليلات التنبؤية",
+    cp_forensicLogs: "سجلات الطب الشرعي",
+    cp_edgeNodes: "عقد الحافة (مزامنة دون اتصال)",
+    cp_nationalApiGateway: "بوابة API الوطنية",
     filters: "الفلاتر",
     applicationId: "رقم الطلب",
     facilityName: "اسم المنشأة",
@@ -2609,6 +2678,21 @@ export const translations: Record<Language, Translation> = {
     never: "أبداً",
     authorizeAndSync: "تفويض ومزامنة",
     emergencyProtocolDesc: "بروتوكول الوصول في حالات الطوارئ للظروف الحرجة",
+    nav_globalSearch: "البحث الشامل (Ctrl+K)",
+    nav_commandPalette: "لوحة الأوامر",
+    nav_favorites: "المفضلة",
+    nav_suggested: "مقترح",
+    nav_recent: "استخدم مؤخراً",
+    nav_quickActions: "إجراءات سريعة",
+    nav_systemStatus: "حالة النظام",
+    nav_activeSession: "جلسة نشطة",
+    nav_switchWing: "تبديل الجناح",
+    nav_nationalOs: "نظام التشغيل الصحي الوطني",
+    nav_command_goDashboard: "الذهاب إلى لوحة القيادة",
+    nav_command_openPatient: "فتح سجل المريض",
+    nav_command_switchWing: "التبديل إلى جناح...",
+    nav_command_searchLab: "البحث في عينات المختبر",
+    nav_command_viewAudit: "عرض سجلات التدقيق",
   },
   KU: {
     appName: "پلاتفۆرمی جولا",
@@ -3396,6 +3480,19 @@ export const translations: Record<Language, Translation> = {
     pendingInspections: "Teftîşên li benda",
     regulatoryViolations: "Binپێکردنێن Rêكxistinê",
     searchFacility: "Li navê navendê bigere...",
+    cp_controlPlane: "سەنتەری کۆنترۆڵی نیشتمانی",
+    cp_chaosEngine: "بزوێنەری خۆڕاگری شێواوی",
+    cp_selfHealing: "پڕۆتۆکۆڵەکانی چاکبوونەوەی خۆکار",
+    cp_sovereignIntelligence: "ژیریی سەروەريی",
+    cp_digitalTwin: "دووانەی دیجیتاڵیی دامەزراوە",
+    cp_zeroTrustAudit: "وردبینیی دادوەریی بێ متمانەیی",
+    cp_resilienceScore: "نمرەی خۆڕاگریی",
+    cp_activeSimulations: "ھاوتاکردنی چالاک",
+    cp_incidentResponse: "وەڵامدانەوەی ڕووداوەکان",
+    cp_predictiveAnalytics: "شیکاریی پێشبینیکراو",
+    cp_forensicLogs: "تۆمارە دادوەريیەکان",
+    cp_edgeNodes: "گرێیەکانی پەراوێز (ھاوکاتکردنی دەرھێڵ)",
+    cp_nationalApiGateway: "دەروازەی API نیشتمانی",
     filters: "Parzûn",
     applicationId: "Nasnameya Serlêdanê",
     facilityName: "Navê Navendê",
@@ -3477,6 +3574,21 @@ export const translations: Record<Language, Translation> = {
     prev: "پێشتر",
     next: "دواتر",
     healthcareProfessional: "پسپۆڕی تەندروستی • تۆڕی تەندروستی نیشتمانی",
+    nav_globalSearch: "گەڕانی گشتگیر (Ctrl+K)",
+    nav_commandPalette: "تەختەی فەرمانەکان",
+    nav_favorites: "دڵخوازەکان",
+    nav_suggested: "پێشنیارکراو",
+    nav_recent: "دوایین بەکارهێنراوەکان",
+    nav_quickActions: "کردارە خێراکان",
+    nav_systemStatus: "بارودۆخی سیستم",
+    nav_activeSession: "دانیشتنی چالاک",
+    nav_switchWing: "گۆڕینی باڵ",
+    nav_nationalOs: "سیستمی کارپێکردنی تەندروستی نیشتمانی",
+    nav_command_goDashboard: "بڕۆ بۆ داشبۆرد",
+    nav_command_openPatient: "کردنەوەی تۆماری نەخۆش",
+    nav_command_switchWing: "گۆڕین بۆ باڵی...",
+    nav_command_searchLab: "گەڕان لە نمونەکانی تاقیگە",
+    nav_command_viewAudit: "بینیی تۆمارەکانی وردبینی",
   },
   TR: {
     appName: "GULA Platformu",
@@ -4220,6 +4332,19 @@ export const translations: Record<Language, Translation> = {
     emergencyProtocolDesc: "Acil durum protokolü açıklaması",
     regulatoryViolations: "Düzenleyici İhlaller",
     searchFacility: "Tesis Ara...",
+    cp_controlPlane: "Ulusal Kontrol Paneli",
+    cp_chaosEngine: "Kaos Dayanıklılık Motoru",
+    cp_selfHealing: "Kendi Kendine İyileşme Protokolleri",
+    cp_sovereignIntelligence: "Egemen Zeka",
+    cp_digitalTwin: "Tesis Dijital İkizi",
+    cp_zeroTrustAudit: "Sıfır Güven Adli Denetim",
+    cp_resilienceScore: "Dayanıklılık Puanı",
+    cp_activeSimulations: "Aktif Simülasyonlar",
+    cp_incidentResponse: "Olay Müdahalesi",
+    cp_predictiveAnalytics: "Öngörücü Analitik",
+    cp_forensicLogs: "Adli Günlükler",
+    cp_edgeNodes: "Uç Düğümler (Çevrimdışı Senkronizasyon)",
+    cp_nationalApiGateway: "Ulusal API Geçidi",
     filters: "Filtreler",
     applicationId: "Başvuru ID",
     facilityName: "Tesis Adı",
@@ -4345,6 +4470,21 @@ export const translations: Record<Language, Translation> = {
     prev: "Geri",
     next: "İleri",
     healthcareProfessional: "Sağlık Uzmanı • Ulusal Sağlık Şebekesi",
+    nav_globalSearch: "Genel Arama (Ctrl+K)",
+    nav_commandPalette: "Komut Paleti",
+    nav_favorites: "Favoriler",
+    nav_suggested: "Önerilen",
+    nav_recent: "Son Kullanılanlar",
+    nav_quickActions: "Hızlı İşlemler",
+    nav_systemStatus: "Sistem Durumu",
+    nav_activeSession: "Aktif Oturum",
+    nav_switchWing: "Kanat Değiştir",
+    nav_nationalOs: "Ulusal Sağlık İşletim Sistemi",
+    nav_command_goDashboard: "Panel’e Git",
+    nav_command_openPatient: "Hasta Kaydını Aç",
+    nav_command_switchWing: "Kanat Değiştir...",
+    nav_command_searchLab: "Laboratuvar Örneklerini Ara",
+    nav_command_viewAudit: "Denetim Günlüklerini Görüntüle",
   },
   SY: {
     appName: "GULA ܦܠܛܦܘܪܡ",
@@ -5132,6 +5272,19 @@ export const translations: Record<Language, Translation> = {
     pendingInspections: "Pending Inspections",
     regulatoryViolations: "Regulatory Violations",
     searchFacility: "Search Facility",
+    cp_controlPlane: "ܩܢܛܪܘܢ ܦܘܩܕܢܐ ܐܘܡܬܢܐ",
+    cp_chaosEngine: "Chaos Resilience Engine",
+    cp_selfHealing: "Self-Healing Protocols",
+    cp_sovereignIntelligence: "Sovereign Intelligence",
+    cp_digitalTwin: "Facility Digital Twin",
+    cp_zeroTrustAudit: "Zero Trust Forensic Audit",
+    cp_resilienceScore: "Resilience Score",
+    cp_activeSimulations: "Active Simulations",
+    cp_incidentResponse: "Incident Response",
+    cp_predictiveAnalytics: "Predictive Analytics",
+    cp_forensicLogs: "Forensic Logs",
+    cp_edgeNodes: "Edge Nodes (Offline Sync)",
+    cp_nationalApiGateway: "National API Gateway",
     filters: "Filters",
     applicationId: "Application ID",
     facilityName: "Facility Name",
@@ -5213,5 +5366,20 @@ export const translations: Record<Language, Translation> = {
     healthcareProfessional: "ܚܕ ܒܝܬ ܚܘܠܡܢܐ • ܫܒܟܐ ܕܚܘܠܡܢܐ ܐܬܪܢܝܐ",
     prev: "ܩܕܡ",
     next: "ܒܬܪ",
+    nav_globalSearch: "Global Search (Ctrl+K)",
+    nav_commandPalette: "Command Palette",
+    nav_favorites: "Favorites",
+    nav_suggested: "Suggested",
+    nav_recent: "Recently Used",
+    nav_quickActions: "Quick Actions",
+    nav_systemStatus: "System Status",
+    nav_activeSession: "Active Session",
+    nav_switchWing: "Switch Wing",
+    nav_nationalOs: "National Health OS",
+    nav_command_goDashboard: "Go to Dashboard",
+    nav_command_openPatient: "Open Patient Record",
+    nav_command_switchWing: "Switch to Wing...",
+    nav_command_searchLab: "Search Lab Samples",
+    nav_command_viewAudit: "View Audit Logs",
   },
 };

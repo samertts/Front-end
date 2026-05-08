@@ -113,5 +113,21 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isSignedIn();
     }
+
+    match /clinical_behaviors/{docId} {
+      allow read: if isSignedIn() && (hasRole('ministry_admin') || isMasterAdmin() || request.auth.uid == docId);
+      allow write: if isMasterAdmin() || hasRole('system');
+    }
+
+    match /financial_providers/{providerId} {
+      allow read: if isSignedIn();
+      allow write: if isMasterAdmin();
+    }
+
+    match /financial_transactions/{txId} {
+      allow read: if isSignedIn() && (resource.data.providerId == request.auth.uid || isMasterAdmin());
+      allow create: if isSignedIn();
+      allow update, delete: if isMasterAdmin();
+    }
   }
 }

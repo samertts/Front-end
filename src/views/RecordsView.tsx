@@ -1,18 +1,31 @@
-import { Plus, Search, Filter, MoreHorizontal, User, ChevronRight, Activity, ShieldAlert, Heart, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Filter, MoreHorizontal, User, ChevronRight, Activity, ShieldAlert, Heart, CheckCircle2, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { cn } from '../lib/utils';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/offlineDb';
+import { PatientService } from '../services/patientService';
+import { useEffect, useState } from 'react';
 
 export function RecordsView() {
   const { t, isRtl } = useLanguage();
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const patients = [
-    { name: "Ahmed Mansour", id: "P-9021", nhid: "GULA-882-99-XC", status: "Active", age: "42", blood: "A+", date: "2024-04-19" },
-    { name: "Sara Khalid", id: "P-8842", nhid: "GULA-441-22-BY", status: "Stable", age: "29", blood: "O-", date: "2024-04-18" },
-    { name: "Karwan Ali", id: "P-7721", nhid: "GULA-331-55-ZA", status: "Critical", age: "55", blood: "B+", date: "2024-04-17" },
-    { name: "Leyla Demir", id: "P-6612", nhid: "GULA-221-88-WE", status: "Recovered", age: "34", blood: "AB+", date: "2024-04-15" }
-  ];
+  const patients = useLiveQuery(
+    async () => {
+      const all = await PatientService.getAllPatients();
+      if (!searchTerm) return all;
+      return all.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        p.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.nationalId.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    },
+    [searchTerm]
+  );
+
+  const isOffline = !navigator.onLine;
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -73,17 +86,24 @@ export function RecordsView() {
             <input 
               type="text" 
               placeholder={t.searchPatientPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition-all shadow-sm"
             />
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-none px-4 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest">
-              <Filter size={16} />
-              {t.filters}
-            </button>
-            <button className="p-4 bg-white border border-slate-200 text-slate-500 rounded-2xl hover:bg-slate-50 transition-all">
-              <MoreHorizontal size={18} />
-            </button>
+          <div className="flex items-center gap-4">
+             {isOffline && (
+               <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-100 rounded-xl text-amber-700 text-[10px] font-black uppercase tracking-widest">
+                 <WifiOff size={14} />
+                 <span>Viewing Offline Cache</span>
+               </div>
+             )}
+             <div className="flex items-center gap-3 w-full sm:w-auto">
+               <button className="flex-1 sm:flex-none px-4 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest">
+                 <Filter size={16} />
+                 {t.filters}
+               </button>
+             </div>
           </div>
         </div>
 
@@ -101,11 +121,11 @@ export function RecordsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {patients.map((patient, i) => {
+              {patients?.map((patient, i) => {
                 const statusCfg = getStatusConfig(patient.status);
                 return (
                   <tr 
-                    key={i} 
+                    key={patient.id} 
                     onClick={() => navigate(`/patients/${patient.id}`)}
                     className="hover:bg-indigo-50/30 transition-all cursor-pointer group relative"
                   >
@@ -122,14 +142,14 @@ export function RecordsView() {
                     </td>
                     <td className="px-8 py-6">
                       <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50/50 px-3 py-1.5 rounded-lg border border-indigo-100 group-hover:bg-indigo-100 transition-all">
-                        {patient.nhid}
+                        GULA-{patient.nationalId}
                       </span>
                     </td>
                     <td className="px-8 py-6">
                       <span className="text-sm font-bold text-slate-600">{patient.age}</span>
                     </td>
                     <td className="px-8 py-6">
-                      <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-black border border-slate-200">{patient.blood}</span>
+                      <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-black border border-slate-200">{patient.bloodType}</span>
                     </td>
                     <td className="px-8 py-6">
                       <div className={cn(
@@ -143,7 +163,7 @@ export function RecordsView() {
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
-                        <p className="text-xs font-bold text-slate-600">{patient.date}</p>
+                        <p className="text-xs font-bold text-slate-600">{patient.lastVisit}</p>
                         <p className="text-[9px] text-slate-400 uppercase font-black mt-1">{t.lastUpdate}</p>
                       </div>
                     </td>
