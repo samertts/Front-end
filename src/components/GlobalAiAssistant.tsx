@@ -20,7 +20,9 @@ export function GlobalAiAssistant() {
           "Bio-Grid synchronization is at 98.4% efficiency.",
           "Network latency in Karkh region observed at 14ms (Optimal).",
           "3 new lab samples pending relational validation.",
-          "Neural backbone suggests higher resource allocation for respiratory vectors today."
+          "Neural backbone suggests higher resource allocation for respiratory vectors today.",
+          "ANOMALY DETECTED: Unexpected variance in Electrolyte profiles for Unit 4.",
+          "PREDICTION: Workload surge expected in Serology at 14:30 based on patient flow."
         ]);
         setIsThinking(false);
       }, 1500);

@@ -73,7 +73,10 @@ export function RecordsView() {
           <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">{t.clinicalDatabase}</h2>
           <p className="text-sm text-slate-400 font-medium mt-2">{t.manageMonitorHealth}</p>
         </div>
-        <button className="w-full sm:w-auto px-6 py-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-[1.5rem] shadow-2xl shadow-slate-200 hover:bg-indigo-600 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+        <button 
+          onClick={() => navigate('/citizen/register')}
+          className="w-full sm:w-auto px-6 py-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-[1.5rem] shadow-2xl shadow-slate-200 hover:bg-indigo-600 hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
+        >
           <Plus size={18} />
           {t.addPatient}
         </button>

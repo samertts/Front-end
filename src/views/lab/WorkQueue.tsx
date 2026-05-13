@@ -12,14 +12,40 @@ import {
   Activity as ActivityIcon, Users, Settings,
   Wifi, WifiOff, AlertTriangle, ClipboardList,
   Image as ImageIcon, Terminal, Keyboard, Scan,
-  Dna, Cpu, Box, X, QrCode
+  Dna, Cpu, Box, X, QrCode, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { ResultEntryUI } from '../../components/lab/ResultEntryUI';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
+import { TelemetryService } from '../../services/telemetryService';
 const ResultCertificate = React.lazy(() => import('../../components/lab/ResultCertificate').then(m => ({ default: m.ResultCertificate })));
+
+// Skeleton Component
+const TaskSkeleton = () => (
+  <div className="bg-white rounded-[3rem] border border-slate-100 p-8 shadow-sm animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+      <div className="md:col-span-4 flex items-center gap-6">
+        <div className="w-20 h-20 bg-slate-100 rounded-[2rem]" />
+        <div className="space-y-2">
+          <div className="h-6 bg-slate-100 rounded-lg w-32" />
+          <div className="h-3 bg-slate-100 rounded-lg w-20" />
+        </div>
+      </div>
+      <div className="md:col-span-4 space-y-4 px-8 border-x border-slate-50">
+        <div className="h-2 bg-slate-100 rounded-full w-full" />
+        <div className="flex gap-4">
+          <div className="h-3 bg-slate-100 rounded w-16" />
+          <div className="h-3 bg-slate-100 rounded w-16" />
+        </div>
+      </div>
+      <div className="md:col-span-4 flex justify-end">
+        <div className="h-14 bg-slate-100 rounded-3xl w-full" />
+      </div>
+    </div>
+  </div>
+);
 
 type TaskStatus = 'unassigned' | 'claimed' | 'in-progress' | 'review' | 'completed';
 type TaskPriority = 'routine' | 'urgent'| 'stat';
@@ -49,6 +75,9 @@ export function WorkQueue() {
   
   const [viewMode, setViewMode] = useState<'technician' | 'pathologist' | 'manager'>('technician');
   const [filterSection, setFilterSection] = useState('All');
+  const [filterPriority, setFilterPriority] = useState<string>('All');
+  const [filterSla, setFilterSla] = useState<string>('All');
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'priority' | 'due'>('priority');
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [isResultEntryOpen, setIsResultEntryOpen] = useState<any | null>(null);
@@ -158,6 +187,8 @@ export function WorkQueue() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    TelemetryService.trackClick('claim_task_attempt', 'WorkQueue');
+
     triggerConfirm(
       'Claim Laboratory Task',
       `Assigning sample #${task.metadata?.sampleId || 'UNK'} (${task.title}) to your queue. Are you ready to begin processing?`,
@@ -230,7 +261,23 @@ export function WorkQueue() {
     }
   };
 
+  const handlePriorityChange = async (taskId: string, newPriority: TaskPriority) => {
+    try {
+      setIsProcessing(taskId);
+      await TaskService.updateTaskPriority(taskId, newPriority);
+      toast.success('Priority Updated', {
+        description: `Sample priority upgraded to ${newPriority.toUpperCase()}`
+      });
+    } catch (error) {
+      toast.error('Failed to update priority');
+      console.error(error);
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
   const sections = ['All', 'Hematology', 'Biochemistry', 'Serology', 'Microbiology'];
+  const priorities = ['All', 'Routine', 'Urgent', 'Stat'];
 
   if (isResultEntryOpen) {
     return (
@@ -325,7 +372,10 @@ export function WorkQueue() {
                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Neural Link</span>
                   </div>
                   <div className="w-1 h-1 rounded-full bg-white/20" />
-                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{profile?.name || 'Operator'} Authorized</span>
+                  <div className="flex bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 gap-2 items-center ml-2">
+                    <ShieldCheck size={12} className="text-emerald-500" />
+                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Runtime Integrity: Verified</span>
+                  </div>
                   
                   {/* State Control Simulation */}
                   <div className="flex bg-white/10 p-1 rounded-xl border border-white/5 shrink-0 gap-1 ml-2 scale-90 translate-y-[-1px]">
@@ -379,19 +429,63 @@ export function WorkQueue() {
          <div className="lg:col-span-3 space-y-6">
             <div className="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm">
                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Queue Filtering</h3>
-               <div className="space-y-2">
-                  {sections.map(section => (
-                    <button 
-                      key={section}
-                      onClick={() => setFilterSection(section)}
-                      className={cn(
-                        "w-full text-right p-4 rounded-2xl text-xs font-bold transition-all border",
-                        filterSection === section ? "bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm" : "bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100"
-                      )}
-                    >
-                      {section}
-                    </button>
-                  ))}
+               
+               <div className="space-y-6">
+                 <div className="space-y-2">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-2 italic">Specialized Section</span>
+                    {sections.map(section => (
+                      <button 
+                        key={section}
+                        onClick={() => setFilterSection(section)}
+                        className={cn(
+                          "w-full text-right p-4 rounded-2xl text-xs font-bold transition-all border",
+                          filterSection === section ? "bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm" : "bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100"
+                        )}
+                      >
+                        {section}
+                      </button>
+                    ))}
+                 </div>
+
+                 <div className="space-y-2">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-2 italic">Priority Level</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {priorities.map(p => (
+                        <button 
+                          key={p}
+                          onClick={() => setFilterPriority(p)}
+                          className={cn(
+                            "p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
+                            filterPriority === p ? "bg-slate-900 border-slate-900 text-white shadow-lg" : "bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100"
+                          )}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                 </div>
+
+                 <div className="space-y-2">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-2 italic">SLA Deadline Status</span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['All', 'Warning', 'Critical'].map(s => (
+                        <button 
+                          key={s}
+                          onClick={() => setFilterSla(s)}
+                          className={cn(
+                            "py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border",
+                            filterSla === s 
+                              ? (s === 'Critical' ? 'bg-red-600 border-red-600 text-white shadow-lg' : 
+                                 s === 'Warning' ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 
+                                 'bg-slate-900 border-slate-900 text-white shadow-lg')
+                              : "bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100"
+                          )}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                 </div>
                </div>
             </div>
 
@@ -446,7 +540,13 @@ export function WorkQueue() {
                <div className="flex gap-2">
                   <div className="relative">
                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                     <input type="text" placeholder="Search task..." className="bg-white border border-slate-200 rounded-xl py-2 pl-4 pr-10 text-xs focus:ring-4 focus:ring-indigo-100 transition-all outline-none" />
+                     <input 
+                        type="text" 
+                        placeholder="Search sample, patient, test..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-xl py-2 pl-4 pr-10 text-xs focus:ring-4 focus:ring-indigo-100 transition-all outline-none" 
+                      />
                   </div>
                   <div className="flex bg-white border border-slate-200 p-1 rounded-xl">
                      <button 
@@ -475,9 +575,32 @@ export function WorkQueue() {
             </div>
 
             <div className="space-y-4">
-               <AnimatePresence mode="popLayout">
+               {tasks.length === 0 ? (
+                 <>
+                   <TaskSkeleton />
+                   <TaskSkeleton />
+                   <TaskSkeleton />
+                 </>
+               ) : (
+                <AnimatePresence mode="popLayout">
                   {labTasks
                     .filter(t => filterSection === 'All' || t.section === filterSection)
+                    .filter(t => filterPriority === 'All' || t.priority === filterPriority.toLowerCase())
+                    .filter(t => {
+                        if (filterSla === 'All') return true;
+                        if (filterSla === 'Critical') return t.timeRemaining < 15;
+                        if (filterSla === 'Warning') return t.timeRemaining < 30 && t.timeRemaining >= 15;
+                        return true;
+                    })
+                    .filter(t => {
+                        if (!searchTerm) return true;
+                        const search = searchTerm.toLowerCase();
+                        return (
+                          t.sampleId.toLowerCase().includes(search) ||
+                          t.patientName.toLowerCase().includes(search) ||
+                          t.testName.toLowerCase().includes(search)
+                        );
+                    })
                     .sort((a, b) => {
                        if (sortBy === 'priority') {
                          const priorityMap = { stat: 0, urgent: 1, routine: 2 };
@@ -493,7 +616,10 @@ export function WorkQueue() {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: i * 0.05 }}
                       key={task.id}
-                      onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                      onClick={() => {
+                        setExpandedTaskId(expandedTaskId === task.id ? null : task.id);
+                        TelemetryService.trackClick('expand_task', 'WorkQueue');
+                      }}
                       className={cn(
                         "bg-white rounded-[3rem] border border-slate-200 p-8 shadow-sm group hover:border-indigo-600 transition-all cursor-pointer relative overflow-hidden",
                         task.priority === 'stat' && "border-l-[12px] border-l-red-500",
@@ -644,52 +770,86 @@ export function WorkQueue() {
                              exit={{ height: 0, opacity: 0 }}
                              className="overflow-hidden"
                            >
-                             <div className="pt-8 mt-8 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div className="space-y-4">
-                                   <div className="p-6 bg-slate-50 rounded-3xl">
-                                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block">Patient Digital ID</span>
-                                      <div className="flex items-center gap-3">
-                                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                                            <User size={18} className="text-indigo-600" />
-                                         </div>
-                                         <span className="text-lg font-black text-slate-900 tracking-tight">{task.patientId}</span>
-                                      </div>
-                                   </div>
-                                   <div className="p-6 bg-slate-50 rounded-3xl">
-                                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block">Clinical Logic Group</span>
-                                      <span className="text-xs font-bold text-slate-700">{task.section} Analytics Node-42</span>
-                                   </div>
-                                </div>
-                                
-                                <div className="lg:col-span-2 space-y-4">
-                                   <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
-                                      <div className="flex items-center gap-2 mb-4">
-                                         <ClipboardList size={16} className="text-indigo-600" />
-                                         <span className="text-[10px] font-black uppercase text-slate-900 tracking-widest">Clinical Handover Notes</span>
-                                      </div>
-                                      <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
-                                         "{task.notes || 'No clinical notes provided for this sample phase.'}"
-                                      </p>
-                                   </div>
-
-                                   {task.attachments && task.attachments.length > 0 && (
-                                     <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-                                        {task.attachments.map((file, idx) => (
-                                          <div key={idx} className="flex-none flex items-center gap-2 px-4 py-3 bg-indigo-50 text-indigo-700 rounded-2xl border border-indigo-100 group/file cursor-pointer hover:bg-slate-900 hover:text-white transition-all">
-                                             <ImageIcon size={14} />
-                                             <span className="text-[10px] font-black truncate max-w-[120px]">{file}</span>
+                              <div className="pt-8 mt-8 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                 <div className="space-y-4">
+                                    <div className="p-6 bg-slate-50 rounded-3xl">
+                                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block italic">Patient Identifier</span>
+                                       <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-3">
+                                             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                                <User size={18} className="text-indigo-600" />
+                                             </div>
+                                             <div>
+                                                <span className="text-[10px] font-black text-slate-400 block tracking-widest">{task.patientId}</span>
+                                                <span className="text-sm font-black text-slate-900 tracking-tight">{task.patientName}</span>
+                                             </div>
                                           </div>
-                                        ))}
-                                     </div>
-                                   )}
-                                </div>
-                             </div>
+                                          <button className="p-2 hover:bg-white rounded-lg transition-colors text-indigo-600">
+                                             <ArrowRight size={14} />
+                                          </button>
+                                       </div>
+                                    </div>
+
+                                    <div className="p-6 bg-slate-50 rounded-3xl">
+                                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4 block italic">Manual Prioritization Override</span>
+                                       <div className="flex gap-2">
+                                          {(['routine', 'urgent', 'stat'] as const).map(p => (
+                                             <button
+                                                key={p}
+                                                onClick={(e) => {
+                                                   e.stopPropagation();
+                                                   handlePriorityChange(task.id, p);
+                                                }}
+                                                className={cn(
+                                                   "flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border-2",
+                                                   task.priority === p 
+                                                      ? (p === 'stat' ? 'bg-red-600 border-red-600 text-white shadow-lg' : 
+                                                         p === 'urgent' ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 
+                                                         'bg-slate-900 border-slate-900 text-white shadow-lg')
+                                                      : "bg-white border-slate-200 text-slate-400 hover:border-slate-300"
+                                                )}
+                                             >
+                                                {p}
+                                             </button>
+                                          ))}
+                                       </div>
+                                    </div>
+                                    <div className="p-6 bg-slate-50 rounded-3xl">
+                                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block italic">Digital Node Assignment</span>
+                                       <span className="text-xs font-bold text-slate-700">{task.section} Analytics Node-42</span>
+                                    </div>
+                                 </div>
+                                 
+                                 <div className="lg:col-span-2 space-y-4">
+                                    <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                                       <div className="flex items-center gap-2 mb-4">
+                                          <ClipboardList size={16} className="text-indigo-600" />
+                                          <span className="text-[10px] font-black uppercase text-slate-900 tracking-widest">Clinical Handover Notes</span>
+                                       </div>
+                                       <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
+                                          "{task.notes || 'No clinical notes provided for this sample phase.'}"
+                                       </p>
+                                    </div>
+
+                                    {task.attachments && task.attachments.length > 0 && (
+                                      <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
+                                         {task.attachments.map((file, idx) => (
+                                           <div key={idx} className="flex-none flex items-center gap-2 px-4 py-3 bg-indigo-50 text-indigo-700 rounded-2xl border border-indigo-100 group/file cursor-pointer hover:bg-slate-900 hover:text-white transition-all">
+                                              <ImageIcon size={14} />
+                                              <span className="text-[10px] font-black truncate max-w-[120px]">{file}</span>
+                                           </div>
+                                         ))}
+                                      </div>
+                                    )}
+                                 </div>
+                              </div>
                            </motion.div>
                          )}
                        </AnimatePresence>
                     </motion.div>
                   ))}
                </AnimatePresence>
+               )}
             </div>
          </div>
       </div>

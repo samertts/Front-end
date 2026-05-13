@@ -17,8 +17,14 @@ import {
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 
+import { PatientService } from '../../services/patientService';
+import { useOnlineStatus } from '../../lib/offlineSyncService';
+import { useNavigate } from 'react-router-dom';
+
 export function PatientRegistration() {
   const { t, language } = useLanguage();
+  const isOnline = useOnlineStatus();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   
@@ -83,13 +89,31 @@ export function PatientRegistration() {
     if (!validate()) return;
 
     setIsSubmitting(true);
-    // Simulated Registration with Network Awareness
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const patientId = `P-${Math.floor(1000 + Math.random() * 9000)}`;
+      await PatientService.createPatient({
+        id: patientId,
+        name: formData.fullName,
+        age: Math.floor((new Date().getTime() - new Date(formData.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000)),
+        gender: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1),
+        bloodType: "Unknown", // Default or add to form
+        status: "Active",
+        lastVisit: new Date().toISOString().split('T')[0],
+        nationalId: formData.nationalId,
+        phone: formData.phone,
+        email: formData.email,
+        insuranceProvider: "N/A",
+        insuranceId: "N/A",
+        allergies: [],
+        medications: [],
+        vitals: { temp: 37, bp: "120/80", pulse: 72, spo2: 98 },
+        clinicalSummary: "Awaiting initial consultation."
+      });
+
       setIsSuccess(true);
-      toast.success(isRtl ? 'تم تسجيل البيانات بنجاح' : 'Registration completed successfully');
+      toast.success(isRtl ? 'تم تسجيل البيانات بنجاح' : 'Registration completed successfully' + (!isOnline ? ' (Offline Cache)' : ''));
     } catch (error) {
-      toast.error('Registration failed');
+      toast.error('Registration failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }

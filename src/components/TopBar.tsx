@@ -11,6 +11,7 @@ import { NeuralSparkline } from './NeuralSparkline';
 import { SystemDiagnosticsDrawer } from './SystemDiagnosticsDrawer';
 import { toast } from 'sonner';
 import { useNavigationStore } from '../store/navigationStore';
+import { IntegrityIndicator, CommandShortcutsHint } from './UIExtras';
 
 export function TopBar() {
   const { t, setLanguage, language, dir } = useLanguage();
@@ -73,6 +74,11 @@ export function TopBar() {
                  Grid Operations: Nominal
                </span>
             </div>
+
+            <div className="h-4 w-px bg-white/10 mx-2" />
+            <IntegrityIndicator />
+            <div className="h-4 w-px bg-white/10 mx-2 ml-4" />
+            <CommandShortcutsHint />
             
             <div className="hidden md:flex items-center gap-4">
                <div className="w-px h-3 bg-white/10" />

@@ -23,13 +23,16 @@ import {
   Palette,
   Sparkles,
   Microscope,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Language } from '../translations';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
+
+import { useFeatureFlags } from '../store/featureFlags';
 
 type TabId = 'profile' | 'appearance' | 'language' | 'security' | 'ai' | 'compliance' | 'network' | 'system';
 
@@ -603,6 +606,57 @@ export function SettingsView() {
                       </div>
                     </div>
                  </div>
+              </div>
+
+              <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
+                <div className="flex items-center gap-3 mb-8">
+                   <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                     <Zap size={24} />
+                   </div>
+                   <div>
+                     <h4 className="text-lg font-black uppercase tracking-tight">Feature Management</h4>
+                     <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Dynamic Component Flags</p>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { id: 'enableAiDiagnostics', label: 'AI Diagnostic Engine v4', desc: 'Real-time symptom analysis and projection' },
+                    { id: 'enableEmergencyMode', label: 'National Emergency Protocol', desc: 'Activates high-priority health grid view' },
+                    { id: 'enableOfflineSync', label: 'Differential Offline Sync', desc: 'Predictive data caching for low connectivity' },
+                    { id: 'enableBiometrics', label: 'Zero-Touch Biometrics', desc: 'Hardware-level identity verification' },
+                    { id: 'enableTelemetry', label: 'Advanced Telemetry v2', desc: 'Live operational intelligence streaming' }
+                  ].map((flag) => (
+                    <button 
+                      key={flag.id}
+                      onClick={() => {
+                        const store = useFeatureFlags.getState();
+                        store.setFlag(flag.id as any, !((store as any)[flag.id]));
+                        setHasChanges(true);
+                      }}
+                      className={cn(
+                        "p-6 rounded-3xl border text-left transition-all group flex items-start justify-between gap-4",
+                        (useFeatureFlags.getState() as any)[flag.id] 
+                          ? "bg-indigo-50 border-indigo-200" 
+                          : "bg-white border-slate-100 opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                      )}
+                    >
+                      <div>
+                        <div className="text-sm font-black text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{flag.label}</div>
+                        <div className="text-[10px] text-slate-500 font-medium leading-relaxed">{flag.desc}</div>
+                      </div>
+                      <div className={cn(
+                        "w-10 h-6 rounded-full relative transition-all duration-500",
+                        (useFeatureFlags.getState() as any)[flag.id] ? "bg-indigo-600" : "bg-slate-200"
+                      )}>
+                        <div className={cn(
+                          "absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-500",
+                          (useFeatureFlags.getState() as any)[flag.id] ? (isRtl ? "left-1" : "right-1") : (isRtl ? "right-1" : "left-1")
+                        )} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
               
               <div className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm flex flex-col md:flex-row items-center gap-6">

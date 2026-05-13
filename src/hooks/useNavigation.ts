@@ -15,6 +15,7 @@ import {
   Code2,
   Box,
   ShieldCheck,
+  Zap,
   Image as ImageIcon,
   Calendar,
   Pill,
@@ -78,6 +79,8 @@ export function useNavigation() {
         label: t.labWing,
         items: [
           { to: '/lab/dashboard', icon: LayoutDashboard, label: t.dashboard, subtext: t.limsOverview },
+          { to: '/lab/orchestrator', icon: Zap, label: "Lab Orchestrator", subtext: "Autonomous Routing" },
+          { to: '/lab/tests', icon: ClipboardList, label: "Test Manager", subtext: "Protocol Catalog" },
           { to: '/lab/queue', icon: TestTube, label: t.workQueue, subtext: t.processing },
           { to: '/lab/samples', icon: Box, label: t.sampleTracking, subtext: t.inventory },
           { to: '/lab/qc', icon: ShieldCheck, label: t.qcControl, subtext: t.standardization },

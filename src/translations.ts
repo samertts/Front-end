@@ -147,6 +147,7 @@ export interface Translation {
   trend: string;
   actionRequired: string;
   action: string;
+  edit: string;
   medicationReminder: string;
   upcomingTest: string;
   diagnosisPath: string;
@@ -1037,6 +1038,7 @@ export const translations: Record<Language, Translation> = {
     trend: "Trend",
     actionRequired: "Action Required",
     action: "Action",
+    edit: "Edit Profile",
     medicationReminder: "Medication Reminder",
     upcomingTest: "Upcoming Test",
     diagnosisPath: "Suggested Path",
@@ -1933,6 +1935,7 @@ export const translations: Record<Language, Translation> = {
     trend: "الاتجاه",
     actionRequired: "إجراء مطلوب",
     action: "إجراء",
+    edit: "تعديل الملف الشخصي",
     medicationReminder: "تذكير دواء",
     upcomingTest: "فحص قادم",
     diagnosisPath: "المسار المقترح",
@@ -2829,6 +2832,7 @@ export const translations: Record<Language, Translation> = {
     trend: "ڕەوت",
     actionRequired: "پێویستی بە کردارە",
     action: "کردار",
+    edit: "دەستکاری پرۆفایل",
     medicationReminder: "بیرهێنەرەوەی دەرمان",
     upcomingTest: "پشکنینی داهاتوو",
     diagnosisPath: "مساری دەستنیشانکردن",
@@ -3725,6 +3729,7 @@ export const translations: Record<Language, Translation> = {
     trend: "Eğilim",
     actionRequired: "Eylem Gerekli",
     action: "Eylem",
+    edit: "Profili Düzenle",
     medicationReminder: "İlaç Hatırlatıcı",
     upcomingTest: "Yaklaşan Test",
     diagnosisPath: "Önerilen Yol",
@@ -4621,6 +4626,7 @@ export const translations: Record<Language, Translation> = {
     trend: "ܪܕܝܐ",
     actionRequired: "ܦܘܠܚܢܐ",
     action: "ܦܘܠܚܢܐ",
+    edit: "ܫܚܠܦ ܨܠܡܐ",
     medicationReminder: "ܡܥܗܕܢܐ",
     upcomingTest: "ܢܣܝܢܐ ܕܐܬܐ",
     diagnosisPath: "ܐܘܪܚܐ",

@@ -8,7 +8,7 @@ import {
   TrendingUp, Download, Share2, ClipboardList,
   Stethoscope, Send, Plus, Zap, FileText, Search,
   History as HistoryIcon, Beaker, MapPin, BrainCircuit, Layers, Sparkles,
-  Shield, Lock, X, Clock, Loader2, WifiOff
+  Shield, Lock, X, Clock, Loader2, WifiOff, Edit
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -30,6 +30,8 @@ import { db } from '../../lib/offlineDb';
 import { PatientService } from '../../services/patientService';
 import { useOnlineStatus } from '../../lib/offlineSyncService';
 
+import { toast } from 'sonner';
+
 export function PatientProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -48,6 +50,9 @@ export function PatientProfile() {
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [showTrendModal, setShowTrendModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+  const [editData, setEditData] = useState<Partial<typeof patient>>({});
   const [isSubmittingConsent, setIsSubmittingConsent] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState<PermissionType[]>(['read_history', 'read_labs']);
   const [selectedDuration, setSelectedDuration] = useState<ConsentDuration>('1_month');
@@ -170,8 +175,159 @@ export function PatientProfile() {
     }
   };
 
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!patient?.id) return;
+    setIsSubmittingEdit(true);
+    try {
+      await PatientService.updatePatient(patient.id, editData as any);
+      setShowEditModal(false);
+      toast.success('Patient profile updated successfully' + (!isOnline ? ' (Queued for sync)' : ''));
+    } catch (error) {
+      toast.error('Failed to update patient profile');
+    } finally {
+      setIsSubmittingEdit(false);
+    }
+  };
+
+  const openEditModal = () => {
+    setEditData({
+      name: patient.name,
+      age: patient.age,
+      phone: patient.phone,
+      email: patient.email,
+      clinicalSummary: patient.clinicalSummary,
+      status: patient.status
+    });
+    setShowEditModal(true);
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 min-h-screen bg-slate-50/20 pb-20">
+      {/* Edit Patient Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.form
+              onSubmit={handleEditSubmit}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                 <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Edit Patient Entry</h2>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Registry Correction Protocol</p>
+                 </div>
+                 <button type="button" onClick={() => setShowEditModal(false)} className="p-3 hover:bg-slate-200 rounded-2xl transition-colors">
+                    <X className="w-6 h-6 text-slate-400" />
+                 </button>
+              </div>
+
+              <div className="p-10 overflow-y-auto space-y-8 flex-1 custom-scrollbar">
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Full Name</label>
+                    <input 
+                      type="text" 
+                      value={editData.name || ''}
+                      onChange={e => setEditData({...editData, name: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-600 transition-all shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Age</label>
+                    <input 
+                      type="number" 
+                      value={editData.age || 0}
+                      onChange={e => setEditData({...editData, age: parseInt(e.target.value) || 0})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-600 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Mobile Access</label>
+                    <input 
+                      type="tel" 
+                      value={editData.phone || ''}
+                      onChange={e => setEditData({...editData, phone: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-600 transition-all shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">GULA Secure Email</label>
+                    <input 
+                      type="email" 
+                      value={editData.email || ''}
+                      onChange={e => setEditData({...editData, email: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-600 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Patient Status</label>
+                  <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                    {['Active', 'Stable', 'Critical', 'Recovered'].map(status => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => setEditData({...editData, status})}
+                        className={cn(
+                          "flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                          editData.status === status ? "bg-white text-indigo-600 shadow-xl" : "text-slate-400 hover:text-slate-600"
+                        )}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Clinical Summary [Local Cache]</label>
+                  <textarea 
+                    rows={4}
+                    value={editData.clinicalSummary || ''}
+                    onChange={e => setEditData({...editData, clinicalSummary: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-sm font-medium focus:ring-2 focus:ring-indigo-600 transition-all shadow-sm resize-none italic"
+                  />
+                </div>
+              </div>
+
+              <div className="p-10 bg-slate-50 border-t border-slate-100 flex gap-4">
+                 <button 
+                  type="button"
+                  onClick={() => setShowEditModal(false)} 
+                  disabled={isSubmittingEdit}
+                  className="flex-1 py-5 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 rounded-3xl transition-all disabled:opacity-50"
+                 >
+                  Abort Changes
+                 </button>
+                 <button 
+                   type="submit"
+                   disabled={isSubmittingEdit}
+                   className="flex-[2] bg-slate-900 text-white py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-black hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                 >
+                   {isSubmittingEdit && <Loader2 className="w-4 h-4 animate-spin" />}
+                   Commit Registry Update <Shield size={16} />
+                 </button>
+              </div>
+            </motion.form>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Allergy Radar & Safety Banner */}
       <div className="bg-rose-600 p-3 flex items-center justify-between px-8 rounded-2xl shadow-lg shadow-rose-200/50 relative overflow-hidden group">
          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
@@ -243,6 +399,12 @@ export function PatientProfile() {
          </div>
 
          <div className="flex gap-3">
+            <button 
+              onClick={openEditModal}
+              className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-slate-900/40 border border-white/10"
+            >
+               <Edit size={18} /> {t.edit}
+            </button>
             <button 
               onClick={() => setShowConsentModal(true)}
               className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 text-indigo-400 rounded-2xl font-bold text-sm transition-all shadow-xl shadow-slate-900/40 border border-white/10"

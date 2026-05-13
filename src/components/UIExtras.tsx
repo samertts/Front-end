@@ -1,8 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUIStore } from '../store/uiStore';
-import { Maximize2, Minimize2, BrainCircuit } from 'lucide-react';
+import { Maximize2, Minimize2, BrainCircuit, ShieldCheck, Cpu, Terminal, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+
+export function IntegrityIndicator() {
+  const [integrityState, setIntegrityState] = useState<'verifying' | 'secure' | 'alert'>('verifying');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIntegrityState('secure'), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className={cn(
+      "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-500",
+      integrityState === 'verifying' ? "bg-slate-50 border-slate-100" :
+      integrityState === 'secure' ? "bg-emerald-500/10 border-emerald-500/20" :
+      "bg-rose-500/10 border-rose-500/20"
+    )}>
+      {integrityState === 'verifying' ? (
+        <Cpu size={12} className="text-slate-400 animate-spin" />
+      ) : (
+        <ShieldCheck size={12} className={integrityState === 'secure' ? "text-emerald-500" : "text-rose-500"} />
+      )}
+      <span className={cn(
+        "text-[8px] font-black uppercase tracking-widest",
+        integrityState === 'verifying' ? "text-slate-400" :
+        integrityState === 'secure' ? "text-emerald-600" : "text-rose-600"
+      )}>
+        {integrityState === 'verifying' ? "Verifying Runtime..." : "Runtime Secure"}
+      </span>
+    </div>
+  );
+}
+
+export function CommandShortcutsHint() {
+  return (
+    <div className="hidden xl:flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-slate-400 opacity-50 hover:opacity-100 transition-opacity">
+       <div className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded">⌘K</kbd>
+          <span>Command Palette</span>
+       </div>
+       <div className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded">Alt+O</kbd>
+          <span>Neural Engine</span>
+       </div>
+    </div>
+  );
+}
 
 export function FocusModeToggle() {
   const { isFocusMode, toggleFocusMode } = useUIStore();

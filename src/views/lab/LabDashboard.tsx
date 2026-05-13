@@ -3,7 +3,7 @@ import {
   FlaskConical, Activity as ActivityIcon, AlertCircle, 
   Clock, CheckCircle2, TrendingUp,
   BarChart3, Microscope, Beaker, Search, Bell, Plus,
-  Cpu, Zap, Radio, Boxes
+  Cpu, Zap, Radio, Boxes, ClipboardList
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -309,6 +309,46 @@ export function LabDashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+        <motion.div 
+           whileHover={{ scale: 1.02 }}
+           onClick={() => window.location.href = '/lab/orchestrator'}
+           className="p-10 bg-indigo-600 rounded-[3.5rem] text-white shadow-2xl shadow-indigo-200 cursor-pointer relative overflow-hidden group"
+        >
+           <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform">
+              <Zap size={140} />
+           </div>
+           <div className="relative z-10">
+              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/20">
+                 <Cpu size={24} />
+              </div>
+              <h2 className="text-3xl font-black uppercase tracking-tighter italic">Autonomous <br />Orchestrator</h2>
+              <p className="text-xs text-white/60 font-bold uppercase tracking-widest mt-4 flex items-center gap-2">
+                 Launch Intelligent Machine Cluster <ArrowRight size={14} />
+              </p>
+           </div>
+        </motion.div>
+
+        <motion.div 
+           whileHover={{ scale: 1.02 }}
+           onClick={() => window.location.href = '/lab/tests'}
+           className="p-10 bg-white border border-slate-100 rounded-[3.5rem] text-slate-900 shadow-sm cursor-pointer relative overflow-hidden group hover:shadow-2xl hover:shadow-slate-200 transition-all"
+        >
+           <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform">
+              <ClipboardList size={140} />
+           </div>
+           <div className="relative z-10">
+              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 border border-indigo-100">
+                 <FlaskConical size={24} />
+              </div>
+              <h2 className="text-3xl font-black uppercase tracking-tighter italic text-slate-900">Test <br />Protocol Catalog</h2>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-4 flex items-center gap-2">
+                 Configure Clinical Methodologies <ArrowRight size={14} />
+              </p>
+           </div>
+        </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {metrics.map((m, i) => (

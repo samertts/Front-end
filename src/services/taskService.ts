@@ -48,6 +48,27 @@ export const TaskService = {
     return updated;
   },
 
+  async updateTaskPriority(id: string, priority: string) {
+    const task = await db.tasks.get(id);
+    if (!task) throw new Error('Task not found');
+
+    const updated = { 
+      ...task, 
+      priority, 
+      updatedAt: new Date().toISOString(),
+      lastCached: Date.now() 
+    };
+
+    await db.tasks.update(id, updated);
+    await OfflineSyncService.queueAction({
+      type: 'update',
+      collection: 'tasks',
+      data: updated
+    });
+
+    return updated;
+  },
+
   async seedTasks(tasks: OfflineTask[]) {
     await db.tasks.bulkPut(tasks);
   }

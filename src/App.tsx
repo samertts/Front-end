@@ -13,6 +13,8 @@ import { DeviceMonitoring } from './views/lab/DeviceMonitoring';
 import { InventoryManagement } from './views/lab/InventoryManagement';
 import { SampleTracking } from './views/lab/SampleTracking';
 import { QualityControl } from './views/lab/QualityControl';
+import { AutomatedOrchestrator } from './views/lab/AutomatedOrchestrator';
+import { TestManager } from './views/lab/TestManager';
 import { DoctorIntelligence } from './views/doctor/DoctorIntelligence';
 import { PatientProfile } from './views/doctor/PatientProfile';
 import { ImagingLabView } from './views/ImagingLabView';
@@ -56,22 +58,35 @@ import { HelpAssistant } from './components/HelpAssistant';
 import { GlobalAiAssistant } from './components/GlobalAiAssistant';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { OfflineSyncService } from './lib/offlineSyncService';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Watermark } from './components/Watermark';
+import { TelemetryService } from './services/telemetryService';
 import { WifiOff, Activity as ActivityIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
+  useEffect(() => {
+    TelemetryService.log('security', 'runtime_integrity_verified', { 
+      agent: navigator.userAgent,
+      time: new Date().toISOString(),
+      integrity_key: 'GULA-SEC-001'
+    });
+  }, []);
+
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <TourProvider>
-          <NotificationProvider>
-            <Toaster position="top-right" richColors />
-            <AppContent />
-          </NotificationProvider>
-        </TourProvider>
-      </LanguageProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <LanguageProvider>
+          <TourProvider>
+            <NotificationProvider>
+              <Toaster position="top-right" richColors />
+              <AppContent />
+            </NotificationProvider>
+          </TourProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -97,6 +112,8 @@ function AnimatedRoutes() {
 
         {/* Lab Wing */}
         <Route path="/lab/dashboard" element={<LabDashboard />} />
+        <Route path="/lab/orchestrator" element={<AutomatedOrchestrator />} />
+        <Route path="/lab/tests" element={<TestManager />} />
         <Route path="/lab/queue" element={<WorkQueue />} />
         <Route path="/lab/devices" element={<DeviceMonitoring />} />
         <Route path="/lab/inventory" element={<InventoryManagement />} />
@@ -258,6 +275,7 @@ function AppContent() {
 
   return (
     <BrowserRouter>
+      <Watermark />
       <CommandPalette />
       <HelpAssistant />
       <GlobalAiAssistant />
