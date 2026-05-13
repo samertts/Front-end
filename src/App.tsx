@@ -60,6 +60,7 @@ import { ShortcutsModal } from './components/ShortcutsModal';
 import { OfflineSyncService } from './lib/offlineSyncService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Watermark } from './components/Watermark';
+import { CriticalAlertOverlay } from './components/lab/CriticalAlertOverlay';
 import { TelemetryService } from './services/telemetryService';
 import { WifiOff, Activity as ActivityIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -225,9 +226,15 @@ function AnimatedRoutes() {
 function AppContent() {
   const { user, isLoading } = useAuth();
   const { t, dir } = useLanguage();
-  const { isFocusMode } = useUIStore();
+  const { isFocusMode, theme } = useUIStore();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [showShortcuts, setShowShortcuts] = useState(false);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark', 'contrast');
+    root.classList.add(theme);
+  }, [theme]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -276,6 +283,7 @@ function AppContent() {
   return (
     <BrowserRouter>
       <Watermark />
+      <CriticalAlertOverlay />
       <CommandPalette />
       <HelpAssistant />
       <GlobalAiAssistant />

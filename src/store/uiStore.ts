@@ -8,8 +8,10 @@ interface UIState {
     ai: 'ready' | 'processing' | 'offline';
     network: 'online' | 'degraded' | 'offline';
   };
+  theme: 'light' | 'dark' | 'contrast';
   recentActions: { id: string; label: string; to: string; timestamp: number }[];
   
+  setTheme: (theme: 'light' | 'dark' | 'contrast') => void;
   toggleFocusMode: () => void;
   toggleCommandPalette: () => void;
   setCommandPalette: (open: boolean) => void;
@@ -25,8 +27,13 @@ export const useUIStore = create<UIState>((set) => ({
     ai: 'ready',
     network: 'online'
   },
+  theme: (localStorage.getItem('gula-theme') as any) || 'light',
   recentActions: [],
 
+  setTheme: (theme) => {
+    localStorage.setItem('gula-theme', theme);
+    set({ theme });
+  },
   toggleFocusMode: () => set((state) => ({ isFocusMode: !state.isFocusMode })),
   toggleCommandPalette: () => set((state) => ({ isCommandPaletteOpen: !state.isCommandPaletteOpen })),
   setCommandPalette: (open) => set({ isCommandPaletteOpen: open }),

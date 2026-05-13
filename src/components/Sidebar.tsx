@@ -123,7 +123,7 @@ export function Sidebar() {
       </button>
 
       <aside id="sidebar-nav" className={cn(
-        "fixed inset-y-0 z-40 w-72 bg-white border-slate-200 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col",
+        "fixed inset-y-0 z-40 w-72 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col",
         isRtl ? "right-0 border-l" : "left-0 border-r",
         isOpen ? "translate-x-0" : (isRtl ? "translate-x-full" : "-translate-x-full")
       )}>
@@ -144,7 +144,7 @@ export function Sidebar() {
           </div>
           {!isFocusMode && (
             <div className="flex flex-col transition-transform group-hover:translate-x-1">
-              <span className="text-xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-1 font-headline">{t.appName}</span>
+              <span className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none mb-1 font-headline">{t.appName}</span>
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 opacity-80 leading-none">{t.medicalIntelligence}</span>
             </div>
           )}
@@ -268,7 +268,7 @@ export function Sidebar() {
                 <div className="flex items-center gap-3.5 relative z-10">
                   <div className={cn(
                     "p-2 rounded-xl transition-all shadow-sm",
-                    expandedSections[section.wing] ? "bg-white text-indigo-600 shadow-xl shadow-indigo-100/50" : "bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-100"
+                    expandedSections[section.wing] ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-xl shadow-indigo-100/50" : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-100"
                   )}>
                     <section.icon size={18} />
                   </div>
@@ -284,7 +284,7 @@ export function Sidebar() {
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                    className="overflow-hidden space-y-1 ml-6 border-l-2 border-slate-100 pl-3 py-1"
+                    className="overflow-hidden space-y-1 ml-6 border-l-2 border-slate-100 dark:border-slate-800 pl-3 py-1"
                   >
                     {section.items.map((item: any) => (
                       <NavLink
@@ -294,8 +294,8 @@ export function Sidebar() {
                         className={({ isActive }) => cn(
                           "flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 ease-out group relative hover:translate-x-1",
                           isActive 
-                            ? "bg-slate-900 text-white font-bold shadow-xl shadow-slate-200" 
-                            : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                            ? "bg-slate-900 dark:bg-indigo-600 text-white font-bold shadow-xl shadow-slate-200 dark:shadow-indigo-900/20" 
+                            : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900"
                         )}
                       >
                         {({ isActive }) => (
@@ -321,7 +321,7 @@ export function Sidebar() {
                             {isActive && (
                               <motion.div 
                                 layoutId="active-nav-bg"
-                                className="absolute inset-0 bg-slate-950 rounded-2xl -z-10 shadow-[0_0_20px_rgba(15,23,42,0.2)]"
+                                className="absolute inset-0 bg-slate-950 dark:bg-indigo-700 rounded-2xl -z-10 shadow-[0_0_20px_rgba(15,23,42,0.2)]"
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                               />
                             )}
@@ -334,11 +334,11 @@ export function Sidebar() {
               </AnimatePresence>
             </div>
           ))}
-          <div className="pt-4 border-t border-slate-50 mt-4 space-y-1">
+          <div className="pt-4 border-t border-slate-50 dark:border-slate-800 mt-4 space-y-1">
             <NavLink
               to="/settings"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
             >
               <Settings size={20} className="text-slate-400" />
               <div className="flex flex-col">
@@ -348,8 +348,8 @@ export function Sidebar() {
           </div>
         </nav>
 
-        <div className="p-4 bg-slate-50/50 mt-auto border-t border-slate-100">
-           <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm mb-4 group hover:shadow-md transition-all">
+        <div className="p-4 bg-slate-50/50 dark:bg-slate-900/50 mt-auto border-t border-slate-100 dark:border-slate-800">
+           <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm mb-4 group hover:shadow-md transition-all">
               <div className="flex items-center justify-between mb-3">
                  <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Network Interlink</span>
                  <div className="flex items-center gap-1.5">
@@ -364,11 +364,11 @@ export function Sidebar() {
                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                        <div className="w-1 h-3 bg-indigo-500 rounded-full animate-pulse" />
-                       <span className="text-[9px] text-slate-600 font-bold">Node-9 Erbil</span>
+                       <span className="text-[9px] text-slate-600 dark:text-slate-400 font-bold">Node-9 Erbil</span>
                     </div>
                     <span className="text-[8px] font-black text-slate-400">14MS</span>
                  </div>
-                 <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+                 <div className="w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: "30%" }}
                       animate={{ width: ["30%", "70%", "30%"] }}
@@ -377,13 +377,13 @@ export function Sidebar() {
                     />
                  </div>
                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest">Last Bio-Sync</span>
+                    <span className="text-[7px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">Last Bio-Sync</span>
                     <span className="text-[7px] font-black text-indigo-500 uppercase tracking-widest">JUST NOW</span>
                  </div>
               </div>
            </div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm transition-transform hover:scale-110">
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm transition-transform hover:scale-110">
               <img 
                 className="w-full h-full object-cover" 
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&background=6366f1&color=fff&bold=true`} 
@@ -392,7 +392,7 @@ export function Sidebar() {
               />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 truncate">{profile?.name || 'Connecting...'}</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">{profile?.name || 'Connecting...'}</span>
               <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider truncate">
                 {profile?.role === 'master_admin' ? t.masterAdmin : (
                   profile?.role === 'ministry_admin' ? t.ministryAdmin : (

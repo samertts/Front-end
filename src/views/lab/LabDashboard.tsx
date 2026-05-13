@@ -14,6 +14,8 @@ import { Task } from '../../types/domain';
 import { auth } from '../../firebase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { LabDeviceMonitor } from '../../components/LabDeviceMonitor';
+import { OperationalIntelligence } from '../../components/lab/OperationalIntelligence';
+import { DashboardSkeleton } from '../../components/ui/Skeleton';
 
 const StatCard = ({ title, value, subtext, icon: Icon, trend, color, bg }: any) => (
   <motion.div 
@@ -65,6 +67,7 @@ export function LabDashboard() {
   const [isRegistering, setIsRegistering] = React.useState(false);
   const [newSampleId, setNewSampleId] = React.useState('');
   const [isSyncing, setIsSyncing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,9 +88,12 @@ export function LabDashboard() {
   React.useEffect(() => {
     const unsubscribe = WorkflowEngine.subscribeToEntityTasks('LAB-882', (newTasks) => {
       setTasks(newTasks);
+      setIsLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  if (isLoading) return <DashboardSkeleton />;
 
   const handleAssign = async (taskId: string) => {
     const user = auth.currentUser;
@@ -361,6 +367,8 @@ export function LabDashboard() {
       <NeuralConnectivityHub />
 
       <LabDeviceMonitor />
+
+      <OperationalIntelligence />
 
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-12 lg:col-span-8 space-y-6">

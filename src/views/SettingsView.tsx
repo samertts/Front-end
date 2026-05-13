@@ -33,6 +33,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 
 import { useFeatureFlags } from '../store/featureFlags';
+import { BehavioralBiometrics } from '../components/BehavioralBiometrics';
+import { SovereignHealthID } from '../components/SovereignHealthID';
 
 type TabId = 'profile' | 'appearance' | 'language' | 'security' | 'ai' | 'compliance' | 'network' | 'system';
 
@@ -45,9 +47,9 @@ interface Tab {
 export function SettingsView() {
   const { t, setLanguage, language } = useLanguage();
   const { user, profile } = useAuth();
+  const { theme, setTheme } = useUIStore();
   const [activeTab, setActiveTab] = useState<TabId>('profile');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [accentColor, setAccentColor] = useState('indigo');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -394,28 +396,40 @@ export function SettingsView() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100 space-y-6">
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">{t.biometricVaulting}</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-5 bg-emerald-50 border border-emerald-100 rounded-3xl flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
-                    <Fingerprint size={24} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8">
+               <div className="space-y-6">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Security & Biometrics</h4>
+                  <BehavioralBiometrics />
+                  
+                  <div className="pt-6 border-t border-slate-100 space-y-6">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">{t.biometricVaulting}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-5 bg-emerald-50 border border-emerald-100 rounded-3xl flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
+                          <Fingerprint size={24} />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-emerald-900">Bio-Verified</div>
+                          <div className="text-[10px] text-emerald-600 font-bold uppercase">Hardware Match Active</div>
+                        </div>
+                      </div>
+                      <div className="p-5 bg-slate-50 border border-slate-100 rounded-3xl flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400">
+                          <Smartphone size={24} />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-slate-500">Physical Token</div>
+                          <div className="text-[10px] text-slate-400 font-bold uppercase">Not Provisioned</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-bold text-emerald-900">Bio-Verified</div>
-                    <div className="text-[10px] text-emerald-600 font-bold uppercase">Hardware Match Active</div>
-                  </div>
-                </div>
-                <div className="p-5 bg-slate-50 border border-slate-100 rounded-3xl flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400">
-                    <Smartphone size={24} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-slate-500">Physical Token</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase">Not Provisioned</div>
-                  </div>
-                </div>
-              </div>
+               </div>
+               
+               <div className="space-y-6">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Federated Identity</h4>
+                  <SovereignHealthID />
+               </div>
             </div>
 
             <div className="pt-6 border-t border-slate-100 flex flex-wrap gap-3">
@@ -470,13 +484,13 @@ export function SettingsView() {
       case 'appearance':
         return (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button 
-                onClick={() => { setIsDarkMode(false); setHasChanges(true); }} 
+                onClick={() => setTheme('light')} 
                 className={cn(
                   "p-6 rounded-3xl border transition-all",
                   isRtl ? "text-right" : "text-left",
-                  !isDarkMode ? "bg-indigo-600 text-white shadow-xl shadow-indigo-100" : "bg-white border-slate-100"
+                  theme === 'light' ? "bg-indigo-600 text-white shadow-xl shadow-indigo-100" : "bg-white border-slate-100"
                 )}
               >
                 <Sun size={32} className="mb-4" />
@@ -484,16 +498,28 @@ export function SettingsView() {
                 <div className="text-[10px] uppercase opacity-50">{t.dayShift}</div>
               </button>
               <button 
-                onClick={() => { setIsDarkMode(true); setHasChanges(true); }} 
+                onClick={() => setTheme('dark')} 
                 className={cn(
                   "p-6 rounded-3xl border transition-all",
                   isRtl ? "text-right" : "text-left",
-                  isDarkMode ? "bg-indigo-900 text-white shadow-xl shadow-slate-900/20" : "bg-white border-slate-100 grayscale cursor-not-allowed opacity-50"
+                  theme === 'dark' ? "bg-indigo-900 text-white shadow-xl shadow-slate-900/20" : "bg-white border-slate-100"
                 )}
               >
                 <Moon size={32} className="mb-4" />
                 <div className="font-bold">{t.darkMode}</div>
                 <div className="text-[10px] uppercase opacity-50">{t.nightShift}</div>
+              </button>
+              <button 
+                onClick={() => setTheme('contrast')} 
+                className={cn(
+                  "p-6 rounded-3xl border transition-all",
+                  isRtl ? "text-right" : "text-left",
+                  theme === 'contrast' ? "bg-black text-yellow-400 shadow-xl border-yellow-400" : "bg-white border-slate-100"
+                )}
+              >
+                <Eye size={32} className="mb-4" />
+                <div className="font-bold">High Contrast</div>
+                <div className="text-[10px] uppercase opacity-50">Visual Accessibility</div>
               </button>
             </div>
             <div className="space-y-4">

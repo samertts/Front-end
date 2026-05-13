@@ -367,6 +367,32 @@ export function LabResultsView() {
                        </div>
                      )}
 
+                     {/* Delta Check Visualization */}
+                     {reports.slice(i + 1).find(r => r.testName === report.testName) && (
+                       <div className="flex flex-col ml-4">
+                          <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none mb-1">Delta Δ</span>
+                          <div className={cn(
+                            "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black",
+                            (() => {
+                              const prev = reports.slice(i + 1).find(r => r.testName === report.testName);
+                              const diff = parseFloat(report.value || '0') - parseFloat(prev?.value || '0');
+                              return diff > 0 ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-emerald-50 text-emerald-600 border border-emerald-100";
+                            })()
+                          )}>
+                             {(() => {
+                               const prev = reports.slice(i + 1).find(r => r.testName === report.testName);
+                               const diff = parseFloat(report.value || '0') - parseFloat(prev?.value || '0');
+                               return diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
+                             })()}
+                             {(() => {
+                               const prev = reports.slice(i + 1).find(r => r.testName === report.testName);
+                               const diff = parseFloat(report.value || '0') - parseFloat(prev?.value || '0');
+                               return diff > 0 ? <TrendingUp size={10} /> : <TrendingUp size={10} className="rotate-180" />;
+                             })()}
+                          </div>
+                       </div>
+                     )}
+
                      {(report.status === 'Critical' || report.status === 'Action Required') && (
                        <div className={cn(
                          "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter flex items-center gap-1 mb-0.5",

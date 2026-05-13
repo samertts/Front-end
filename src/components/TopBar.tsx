@@ -6,7 +6,7 @@ import { Language } from '../translations';
 import { cn } from '../lib/utils';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { NeuralSparkline } from './NeuralSparkline';
 import { SystemDiagnosticsDrawer } from './SystemDiagnosticsDrawer';
 import { toast } from 'sonner';
@@ -24,9 +24,14 @@ export function TopBar() {
   const [isLowBandwidth, setIsLowBandwidth] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [clinicalMode, setClinicalMode] = useState<'clinic' | 'emergency' | 'research'>('clinic');
+  const [crisisActive, setCrisisActive] = useState(false);
   const isRtl = dir === 'rtl';
 
   useEffect(() => {
+    // Check for national crisis mode from potential global state or local storage
+    const savedCrisis = localStorage.getItem('national_crisis_mode') === 'true';
+    if (savedCrisis) setCrisisActive(true);
+    
     const timer = setInterval(() => {
       setThroughput(prev => Math.max(30, Math.min(60, prev + (Math.random() * 2 - 1))));
     }, 4000);
@@ -57,7 +62,40 @@ export function TopBar() {
   const langs: Language[] = ['EN', 'AR', 'KU', 'TR', 'SY'];
 
   return (
-    <div className="sticky top-0 z-40 bg-white">
+    <div className="sticky top-0 z-40 bg-white dark:bg-slate-950">
+      <AnimatePresence>
+        {crisisActive && (
+          <motion.div 
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
+            exit={{ height: 0 }}
+            className="bg-red-600 text-white py-3 px-6 overflow-hidden relative"
+          >
+             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_20px,rgba(0,0,0,0.1)_20px,rgba(0,0,0,0.1)_40px)] animate-slide" />
+             <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 bg-white text-red-600 rounded-xl flex items-center justify-center shadow-xl">
+                      <ShieldAlert size={20} className="animate-bounce" />
+                   </div>
+                   <div>
+                      <h4 className="text-sm font-black uppercase tracking-tighter italic">National Crisis Protocol Active</h4>
+                      <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest mt-0.5">Emergency Command Overrides in Effect • Limited Data Sync</p>
+                   </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    setCrisisActive(false);
+                    localStorage.setItem('national_crisis_mode', 'false');
+                  }}
+                  className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                   Acknowledge & Dismiss
+                </button>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <SystemDiagnosticsDrawer 
         isOpen={showDiagnostics} 
         onClose={() => setShowDiagnostics(false)} 
@@ -73,6 +111,12 @@ export function TopBar() {
                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-emerald-400 transition-colors">
                  Grid Operations: Nominal
                </span>
+            </div>
+
+            <div className="h-4 w-px bg-white/10 mx-2" />
+            <div className="hidden sm:flex items-center gap-2 px-2 py-0.5 bg-indigo-500/10 rounded border border-indigo-500/20">
+               <Network size={10} className="text-indigo-400" />
+               <span className="text-[7px] font-black uppercase tracking-widest text-indigo-400">Bio-Mesh Link: Active</span>
             </div>
 
             <div className="h-4 w-px bg-white/10 mx-2" />
@@ -106,24 +150,24 @@ export function TopBar() {
       </div>
 
       {/* Main Navbar */}
-      <header className="w-full bg-white/80 backdrop-blur-3xl border-b border-slate-100 h-20 flex items-center shadow-sm px-6 gap-6">
+      <header className="w-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl border-b border-slate-100 dark:border-slate-800 h-20 flex items-center shadow-sm px-6 gap-6">
         {/* Universal Command Trigger */}
         <button 
           onClick={openCommand}
-          className="flex-1 max-w-xl group relative overflow-hidden rounded-[1.25rem] border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-500 py-3 px-6 h-12"
+          className="flex-1 max-w-xl group relative overflow-hidden rounded-[1.25rem] border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-900 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-500 py-3 px-6 h-12"
         >
           <div className="flex items-center justify-between pointer-events-none">
             <div className="flex items-center gap-4">
               <Search size={20} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
-              <span className="text-sm font-bold text-slate-400 group-hover:text-slate-600 transition-colors uppercase tracking-tight">
+              <span className="text-sm font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors uppercase tracking-tight">
                 {t.nav_globalSearch}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="px-2 py-1 bg-white border border-slate-200 rounded-lg shadow-sm">
+              <div className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
                 <Command size={10} className="text-slate-400" />
               </div>
-              <div className="px-2 py-1 bg-white border border-slate-200 rounded-lg shadow-sm">
+              <div className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
                 <span className="text-[10px] font-black text-slate-400">K</span>
               </div>
             </div>
@@ -135,28 +179,28 @@ export function TopBar() {
           {/* Clinical Modes */}
           <div className="hidden lg:flex items-center p-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
              {(['clinic', 'emergency', 'research'] as const).map((mode) => (
-               <button
-                 key={mode}
-                 onClick={() => toggleMode(mode)}
-                 className={cn(
-                   "px-4 py-2 rounded-xl text-[9px] font-black transition-all flex items-center gap-2 uppercase tracking-tighter",
-                   clinicalMode === mode 
-                    ? (mode === 'emergency' ? "bg-red-600 text-white" : mode === 'research' ? "bg-amber-500 text-white" : "bg-white text-indigo-600")
-                    : "text-white/40 hover:text-white/60"
-                 )}
-               >
-                 {mode === 'clinic' && <Stethoscope size={14} />}
-                 {mode === 'emergency' && <ShieldAlert size={14} />}
-                 {mode === 'research' && <FlaskConical size={14} />}
-                 {mode}
-               </button>
+                <button
+                  key={mode}
+                  onClick={() => toggleMode(mode)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[9px] font-black transition-all flex items-center gap-2 uppercase tracking-tighter",
+                    clinicalMode === mode 
+                      ? (mode === 'emergency' ? "bg-red-600 text-white" : mode === 'research' ? "bg-amber-500 text-white" : "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300")
+                      : "text-white/40 hover:text-white/60"
+                  )}
+                >
+                  {mode === 'clinic' && <Stethoscope size={14} />}
+                  {mode === 'emergency' && <ShieldAlert size={14} />}
+                  {mode === 'research' && <FlaskConical size={14} />}
+                  {mode}
+                </button>
              ))}
           </div>
 
-          <div className="h-8 w-px bg-slate-200 hidden md:block" />
+          <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
 
           {/* Lang Switcher */}
-          <div className="flex items-center p-1 bg-slate-50 border border-slate-200 rounded-2xl hidden md:flex">
+          <div className="flex items-center p-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hidden md:flex text-slate-700 dark:text-slate-300">
             {langs.map((l) => (
               <button
                 key={l}
@@ -164,8 +208,8 @@ export function TopBar() {
                 className={cn(
                   "px-3 py-1.5 rounded-xl text-[10px] font-black transition-all relative",
                   language === l 
-                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
-                    : "text-slate-400 hover:text-slate-600"
+                    ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm border border-slate-100 dark:border-slate-700 font-bold" 
+                    : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 )}
               >
                 {l}
@@ -177,12 +221,12 @@ export function TopBar() {
           <div className="relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-3 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-2xl transition-all relative border border-transparent hover:border-slate-100"
+              className="p-3 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-indigo-600 rounded-2xl transition-all relative border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
             >
               <Bell size={24} />
               {unreadCount > 0 && (
                 <span className={cn(
-                  "absolute top-2.5 w-5 h-5 bg-red-500 border-2 border-white rounded-lg text-[9px] font-black text-white flex items-center justify-center shadow-lg",
+                  "absolute top-2.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-lg text-[9px] font-black text-white flex items-center justify-center shadow-lg",
                   isRtl ? "left-2" : "right-2"
                 )}>
                   {unreadCount}
@@ -193,9 +237,9 @@ export function TopBar() {
           </div>
 
           {/* User Profile Summary */}
-          <div className="flex items-center gap-4 group cursor-pointer p-1 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">
+          <div className="flex items-center gap-4 group cursor-pointer p-1 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800 font-bold">
              <div className="flex flex-col items-end text-right hidden sm:flex">
-                <p className="text-xs font-black text-slate-900 leading-none mb-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
+                <p className="text-xs font-black text-slate-900 dark:text-white leading-none mb-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
                   {profile?.name || user?.email?.split('@')[0]}
                 </p>
                 <div className="flex items-center gap-1.5 opacity-60">
@@ -203,7 +247,7 @@ export function TopBar() {
                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{profile?.role || 'User'}</p>
                 </div>
              </div>
-             <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+             <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 dark:shadow-indigo-900/20 relative overflow-hidden">
                 <User size={22} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
              </div>
@@ -211,7 +255,7 @@ export function TopBar() {
 
           <button 
             onClick={handleSignOut}
-            className="p-3 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-all"
+            className="p-3 text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 rounded-2xl transition-all font-bold"
           >
             <LogOut size={24} />
           </button>

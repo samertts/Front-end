@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Skeleton } from '../../components/ui/Skeleton';
+import { Skeleton, PatientProfileSkeleton } from '../../components/ui/Skeleton';
 import { 
   ArrowLeft, Activity as ActivityIcon, FlaskConical, Pill, 
   Calendar, CheckCircle2, AlertCircle, ChevronRight,
@@ -59,26 +59,18 @@ export function PatientProfile() {
   const [selectedScope, setSelectedScope] = useState<'limited' | 'full'>('limited');
   const [consentPurpose, setConsentPurpose] = useState<'clinical' | 'research' | 'emergency'>('clinical');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!patient) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto space-y-8 animate-pulse text-center py-40">
-        <Loader2 className="animate-spin mx-auto text-indigo-600 mb-4" size={40} />
-        <h2 className="text-xl font-bold text-slate-400">Loading Patient Records...</h2>
-      </div>
-    );
-  }
-
-  // Check for low bandwidth preference
   useEffect(() => {
-    const isLow = localStorage.getItem('gula_low_bandwidth') === 'true';
-    if (isLow) {
-      setIsLoading(true);
-      const timer = setTimeout(() => setIsLoading(false), 2000);
+    if (patient) {
+      const timer = setTimeout(() => setIsLoading(false), 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [patient]);
+
+  if (isLoading || !patient) {
+    return <PatientProfileSkeleton />;
+  }
 
   const criticalAlerts = [
     { id: 'a1', text: "Last HbA1c (7.2%) indicates poorly controlled glycemic index.", type: 'warning' },
