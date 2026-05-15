@@ -43,6 +43,7 @@ import { FinanceResources } from './views/ministry/FinanceResources';
 import { UserGovernance } from './views/ministry/UserGovernance';
 import { IntegrationGateway } from './views/ministry/IntegrationGateway';
 import { ControlPlane } from './views/ministry/ControlPlane';
+import CommunicationHub from './views/CommunicationHub';
 import { MarketplaceView } from './views/financial/MarketplaceView';
 import { SimulationView } from './views/financial/SimulationView';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -216,6 +217,7 @@ function AnimatedRoutes() {
         } />
         
         {/* Shared */}
+        <Route path="/messages" element={<CommunicationHub />} />
         <Route path="/settings" element={<SettingsView />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

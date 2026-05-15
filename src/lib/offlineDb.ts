@@ -22,6 +22,7 @@ export interface OfflinePatient {
     spo2: number;
   };
   clinicalSummary?: string;
+  verificationStatus?: 'verified' | 'pending' | 'unverified';
   lastCached: number;
 }
 

@@ -20,6 +20,7 @@ const MOCK_PATIENTS: OfflinePatient[] = [
     insuranceId: "NH-112233",
     allergies: ["Penicillin"],
     medications: ["Metformin"],
+    verificationStatus: 'verified',
     vitals: { temp: 37.2, bp: "120/80", pulse: 72, spo2: 98 },
     lastCached: Date.now()
   },
@@ -38,6 +39,7 @@ const MOCK_PATIENTS: OfflinePatient[] = [
     insuranceId: "GC-445566",
     allergies: [],
     medications: [],
+    verificationStatus: 'pending',
     vitals: { temp: 36.8, bp: "115/75", pulse: 68, spo2: 99 },
     lastCached: Date.now()
   }
@@ -82,6 +84,7 @@ export const PatientService = {
              insuranceId: data.insuranceId || "N/A",
              allergies: data.allergies || [],
              medications: data.medications || [],
+             verificationStatus: data.verificationStatus || 'unverified',
              vitals: data.vitals || { temp: 37, bp: "120/80", pulse: 72, spo2: 98 },
              clinicalSummary: data.clinicalSummary || "No history available.",
              lastCached: Date.now(),

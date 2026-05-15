@@ -31,6 +31,7 @@ import { Language } from '../translations';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
+import { useUIStore } from '../store/uiStore';
 
 import { useFeatureFlags } from '../store/featureFlags';
 import { BehavioralBiometrics } from '../components/BehavioralBiometrics';

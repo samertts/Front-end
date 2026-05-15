@@ -5,7 +5,8 @@ import {
   Search, Filter, Database, Server,
   Lock, Key, Eye, User, Globe, Activity,
   MoreVertical, Clock, CheckCircle2, AlertTriangle,
-  History, Download, Zap, MapPin
+  History, Download, Zap, MapPin, Scale,
+  TrendingDown, TrendingUp, Sparkles, Binary
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { cn } from '../../lib/utils';
@@ -21,13 +22,14 @@ interface AuditLog {
   integrity: 'valid' | 'warning' | 'critical';
   ip: string;
   location: string;
+  trustScore?: number;
 }
 
 const auditLogs: AuditLog[] = [
-  { id: 'LOG-8821', user: 'Dr. Samer M.', role: 'doctor', action: 'Identity Read', resourceId: 'GID-292-1029', timestamp: '2024-04-25 14:02:11', integrity: 'valid', ip: '192.168.4.12', location: 'Baghdad Central' },
-  { id: 'LOG-8822', user: 'SysAdmin Alpha', role: 'admin', action: 'Grid Mod', resourceId: 'CLUSTER-B3', timestamp: '2024-04-25 13:58:00', integrity: 'warning', ip: '110.12.92.1', location: 'Erbil Sector 1' },
-  { id: 'LOG-8823', user: 'Researcher Z.', role: 'researcher', action: 'Query Bulk', resourceId: 'EPID-X99', timestamp: '2024-04-25 13:12:45', integrity: 'valid', ip: '29.34.1.92', location: 'Basrah Hub' },
-  { id: 'LOG-8824', user: 'Lab Node 04', role: 'lab', action: 'Result Push', resourceId: 'RES-00293', timestamp: '2024-04-24 10:22:11', integrity: 'critical', ip: 'Unknown', location: 'Autonomous' },
+  { id: 'LOG-8821', user: 'Dr. Samer M.', role: 'doctor', action: 'Identity Read', resourceId: 'GID-292-1029', timestamp: '2024-04-25 14:02:11', integrity: 'valid', ip: '192.168.4.12', location: 'Baghdad Central', trustScore: 98 },
+  { id: 'LOG-8822', user: 'SysAdmin Alpha', role: 'admin', action: 'Grid Mod', resourceId: 'CLUSTER-B3', timestamp: '2024-04-25 13:58:00', integrity: 'warning', ip: '110.12.92.1', location: 'Erbil Sector 1', trustScore: 82 },
+  { id: 'LOG-8823', user: 'Researcher Z.', role: 'researcher', action: 'Query Bulk', resourceId: 'EPID-X99', timestamp: '2024-04-25 13:12:45', integrity: 'valid', ip: '29.34.1.92', location: 'Basrah Hub', trustScore: 95 },
+  { id: 'LOG-8824', user: 'Lab Node 04', role: 'lab', action: 'Result Push', resourceId: 'RES-00293', timestamp: '2024-04-24 10:22:11', integrity: 'critical', ip: 'Unknown', location: 'Autonomous', trustScore: 34 },
 ];
 
 export function DataSovereigntyAudit() {
@@ -35,35 +37,71 @@ export function DataSovereigntyAudit() {
   const [filter, setFilter] = useState('All');
 
   return (
-    <div className="p-8 space-y-8 bg-white min-h-screen">
+    <div className="p-8 space-y-8 bg-slate-50 dark:bg-slate-950 min-h-screen">
       {/* Header Panel */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 pb-8 border-b border-slate-100">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 pb-8 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-6">
-           <div className="p-4 bg-slate-900 text-white rounded-[2rem] shadow-2xl shadow-indigo-100">
+           <div className="p-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-[2rem] shadow-2xl shadow-indigo-100 dark:shadow-indigo-900/20">
               <ShieldCheck size={32} />
            </div>
            <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase">{t.auditHub}</h1>
-              <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">GULA Regulatory Compliance • Protocol V4.2</p>
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase italic">Sovereign <span className="text-indigo-600 dark:text-indigo-300">Audit</span> Ledger</h1>
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">AI Anti-Corruption Layer • GULA OS V4.5</p>
            </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
            {[
              { label: t.activeSessions, value: '142', icon: Activity, color: 'text-indigo-600' },
-             { label: t.integrityRating, value: '99.9%', icon: ShieldCheck, color: 'text-emerald-600' },
-             { label: t.auditDensity, value: 'High', icon: Database, color: 'text-slate-600' },
-             { label: t.threatIndex, value: 'Low', icon: AlertTriangle, color: 'text-rose-500' }
+             { label: 'Fraud Detection', value: 'Active', icon: Scale, color: 'text-emerald-600' },
+             { label: 'Blockchain Sync', value: '14ms', icon: Binary, color: 'text-indigo-500' },
+             { label: t.threatIndex, value: 'Minimal', icon: AlertTriangle, color: 'text-rose-500' }
            ].map(stat => (
-             <div key={stat.label} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+             <div key={stat.label} className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                    <stat.icon size={12} className={stat.color} />
                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
                 </div>
-                <p className="text-lg font-black text-slate-900">{stat.value}</p>
+                <p className="text-lg font-black text-slate-900 dark:text-white">{stat.value}</p>
              </div>
            ))}
         </div>
+      </div>
+
+      {/* AI Anti-Corruption Dashboard Section */}
+      <div className="p-8 bg-indigo-900 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+         <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12 transition-transform pointer-events-none">
+            <Scale size={240} className="text-white" />
+         </div>
+         <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-8">
+               <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                  <Sparkles size={24} className="text-indigo-200" />
+               </div>
+               <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter italic">AI Corruption Detection Engine</h3>
+                  <p className="text-[10px] font-black uppercase text-indigo-300 tracking-[0.3em]">Heuristic Pattern Recognition Active</p>
+               </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               {[
+                  { label: 'Suspicious Referrals', val: '4 detected', color: 'rose', status: 'Alert' },
+                  { label: 'Test Volatility', val: 'Nominal', color: 'emerald', status: 'Optimal' },
+                  { label: 'Financial Drift', val: 'Minor (0.2%)', color: 'amber', status: 'Review' },
+               ].map((inf, i) => (
+                  <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                     <div className="flex justify-between items-center mb-4">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-indigo-300">{inf.label}</span>
+                        <div className={cn("px-2 py-0.5 rounded-lg text-[8px] font-black uppercase", `bg-${inf.color}-500 text-white`)}>
+                           {inf.status}
+                        </div>
+                     </div>
+                     <p className="text-xl font-black">{inf.val}</p>
+                  </div>
+               ))}
+            </div>
+         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -71,12 +109,12 @@ export function DataSovereigntyAudit() {
         <div className="xl:col-span-2 space-y-6">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
               <div className="flex items-center gap-4">
-                 <h2 className="text-xl font-bold text-slate-900 tracking-tight">{t.immutableLedger}</h2>
-                 <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest italic">Live Audit Active</span>
+                 <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t.immutableLedger}</h2>
+                 <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest italic border border-indigo-100 dark:border-indigo-800">Quantum Proofing Active</span>
               </div>
               <div className="flex gap-2">
-                 <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50"><Search size={18} className="text-slate-400" /></button>
-                 <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50"><Filter size={18} className="text-slate-400" /></button>
+                 <button className="p-2 border border-slate-100 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"><Search size={18} className="text-slate-400" /></button>
+                 <button className="p-2 border border-slate-100 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"><Filter size={18} className="text-slate-400" /></button>
               </div>
            </div>
 
@@ -88,52 +126,59 @@ export function DataSovereigntyAudit() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="p-6 bg-white border border-slate-100 rounded-[2.5rem] hover:border-indigo-600 transition-all group relative overflow-hidden"
+                    className="p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] hover:border-indigo-600 dark:hover:border-indigo-500 transition-all group relative overflow-hidden shadow-sm"
                   >
                     <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
                        <div className="flex items-center gap-6 md:w-64">
                           <div className={cn(
-                            "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm",
-                            log.integrity === 'valid' ? "bg-emerald-50 text-emerald-600" :
-                            log.integrity === 'warning' ? "bg-amber-50 text-amber-600" :
-                            "bg-rose-50 text-rose-600"
+                            "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm border",
+                            log.integrity === 'valid' ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800" :
+                            log.integrity === 'warning' ? "bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100 dark:border-amber-800" :
+                            "bg-rose-50 dark:bg-rose-900/20 text-rose-600 border-rose-100 dark:border-rose-800"
                           )}>
                              {log.integrity === 'valid' ? <CheckCircle2 size={28} /> : 
                               log.integrity === 'warning' ? <AlertTriangle size={28} /> : <ShieldAlert size={28} />}
                           </div>
                           <div>
-                             <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{log.user}</h4>
-                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{log.role} Access Profile</p>
+                             <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">{log.user}</h4>
+                             <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{log.role}</p>
+                                <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                <span className={cn(
+                                   "text-[9px] font-black uppercase",
+                                   (log.trustScore ?? 0) > 90 ? "text-emerald-500" : (log.trustScore ?? 0) > 70 ? "text-amber-500" : "text-rose-500"
+                                )}>Trust: {log.trustScore}%</span>
+                             </div>
                           </div>
                        </div>
 
-                       <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-6 border-l border-r border-slate-50 px-8">
+                       <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-6 border-l border-r border-slate-50 dark:border-slate-800 px-8">
                           <div>
-                             <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">{t.action}</p>
-                             <p className="text-xs font-bold text-slate-700">{log.action}</p>
+                             <p className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest mb-1">{t.action}</p>
+                             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{log.action}</p>
                           </div>
                           <div>
-                             <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Target ID</p>
-                             <p className="text-xs font-bold text-slate-700 font-mono">{log.resourceId}</p>
+                             <p className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest mb-1">Target ID</p>
+                             <p className="text-xs font-bold text-slate-700 dark:text-slate-300 font-mono">{log.resourceId}</p>
                           </div>
                           <div>
-                             <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Timestamp</p>
-                             <p className="text-xs font-bold text-slate-400 font-mono">{log.timestamp.split(' ')[1]}</p>
+                             <p className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest mb-1">Timestamp</p>
+                             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 font-mono">{log.timestamp.split(' ')[1]}</p>
                           </div>
                        </div>
 
                        <div className="md:w-48 text-right flex flex-col items-end gap-2">
                           <div className="flex items-center gap-2">
-                             <MapPin size={10} className="text-slate-300" />
-                             <span className="text-[10px] font-bold text-slate-500 uppercase">{log.location}</span>
+                             <MapPin size={10} className="text-slate-300 dark:text-slate-700" />
+                             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{log.location}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                             <Fingerprint size={10} className="text-slate-300" />
+                             <Fingerprint size={10} className="text-slate-300 dark:text-slate-700" />
                              <span className="text-[9px] font-mono font-bold text-indigo-400">{log.ip}</span>
                           </div>
                        </div>
 
-                       <button className="p-3 bg-slate-50 text-slate-300 rounded-xl hover:text-indigo-600 transition-colors">
+                       <button className="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                           <MoreVertical size={20} />
                        </button>
                     </div>

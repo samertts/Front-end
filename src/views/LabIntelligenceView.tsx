@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Activity as ActivityIcon, Send, Sparkles, AlertCircle, Bot, User, Camera, Image as ImageIcon, X, Cpu, Zap, BrainCircuit, Terminal, Database } from 'lucide-react';
+import { Activity as ActivityIcon, Send, Sparkles, AlertCircle, Bot, User, Camera, Image as ImageIcon, X, Cpu, Zap, BrainCircuit, Terminal, Database, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getClinicalInsight } from '../services/geminiService';
 import { cn } from '../lib/utils';

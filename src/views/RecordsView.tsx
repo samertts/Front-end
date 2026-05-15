@@ -119,7 +119,8 @@ export function RecordsView() {
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 border-r border-slate-100 uppercase tracking-widest">{t.age}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 border-r border-slate-100 uppercase tracking-widest">{t.bloodType}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 border-r border-slate-100 uppercase tracking-widest">{t.status}</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.date}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 border-r border-slate-100 uppercase tracking-widest">{t.verificationStatus}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.lastVisit}</th>
                 <th className="px-4"></th>
               </tr>
             </thead>
@@ -165,9 +166,21 @@ export function RecordsView() {
                       </div>
                     </td>
                     <td className="px-8 py-6">
+                      <div className={cn(
+                        "inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border",
+                        patient.verificationStatus === 'verified' ? "text-emerald-700 bg-emerald-50 border-emerald-100" :
+                        patient.verificationStatus === 'pending' ? "text-amber-700 bg-amber-50 border-amber-100" :
+                        "text-rose-700 bg-rose-50 border-rose-100"
+                      )}>
+                        {patient.verificationStatus === 'verified' && <CheckCircle2 size={10} className="mr-1.5" />}
+                        {patient.verificationStatus === 'pending' && <Filter size={10} className="mr-1.5" />}
+                        {patient.verificationStatus || 'unverified'}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
                       <div className="flex flex-col">
                         <p className="text-xs font-bold text-slate-600">{patient.lastVisit}</p>
-                        <p className="text-[9px] text-slate-400 uppercase font-black mt-1">{t.lastUpdate}</p>
+                        <p className="text-[9px] text-slate-400 uppercase font-black mt-1 leading-none">Quantum Verified</p>
                       </div>
                     </td>
                     <td className="px-4 py-6">

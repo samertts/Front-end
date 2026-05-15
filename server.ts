@@ -1,5 +1,7 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import path from 'path';
 import { z } from 'zod';
 import * as admin from 'firebase-admin';
@@ -20,9 +22,58 @@ const db = admin.firestore?.();
 
 async function startServer() {
   const app = express();
+  const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
   const PORT = 3000;
 
   app.use(express.json());
+
+  // --- Real-time Socket Logic ---
+  io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    socket.on('join_room', (roomId) => {
+      socket.join(roomId);
+      console.log(`Socket ${socket.id} joined room: ${roomId}`);
+    });
+
+    socket.on('send_message', async (data) => {
+      const { roomId, message, senderId, senderName, type } = data;
+      
+      const messageData = {
+        roomId,
+        text: message,
+        senderId,
+        senderName,
+        type: type || 'text',
+        timestamp: new Date().toISOString(),
+      };
+
+      // Persist to Firestore if available
+      if (db) {
+        try {
+          await db.collection('messages').add({
+            ...messageData,
+            serverTimestamp: admin.firestore.FieldValue.serverTimestamp()
+          });
+        } catch (e) {
+          console.error("Failed to persist message:", e);
+        }
+      }
+
+      // Broadcast to others in the room
+      io.to(roomId).emit('receive_message', messageData);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.id);
+    });
+  });
 
   // --- Financial API Routes ---
 
@@ -161,7 +212,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

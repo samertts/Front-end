@@ -900,6 +900,9 @@ export interface Translation {
   grant: string;
   revoke: string;
   scope: string;
+  verificationStatus: string;
+  lastVisit: string;
+  messages: string;
 }
 
 export const translations: Record<Language, Translation> = {
@@ -1799,6 +1802,9 @@ export const translations: Record<Language, Translation> = {
     nav_command_switchWing: "Switch to Wing...",
     nav_command_searchLab: "Search Lab Samples",
     nav_command_viewAudit: "View Audit Logs",
+    verificationStatus: "Verification Status",
+    lastVisit: "Last Visit",
+    messages: "Messages",
   },
   AR: {
     appName: "منصة جولا",
@@ -2696,6 +2702,9 @@ export const translations: Record<Language, Translation> = {
     nav_command_switchWing: "التبديل إلى جناح...",
     nav_command_searchLab: "البحث في عينات المختبر",
     nav_command_viewAudit: "عرض سجلات التدقيق",
+    verificationStatus: "حالة التحقق",
+    lastVisit: "آخر زيارة",
+    messages: "الرسائل",
   },
   KU: {
     appName: "پلاتفۆرمی جولا",
@@ -3593,6 +3602,9 @@ export const translations: Record<Language, Translation> = {
     nav_command_switchWing: "گۆڕین بۆ باڵی...",
     nav_command_searchLab: "گەڕان لە نمونەکانی تاقیگە",
     nav_command_viewAudit: "بینیی تۆمارەکانی وردبینی",
+    verificationStatus: "بارودۆخی پشکنین",
+    lastVisit: "دوا سەردان",
+    messages: "پەیامەکان",
   },
   TR: {
     appName: "GULA Platformu",
@@ -4490,6 +4502,9 @@ export const translations: Record<Language, Translation> = {
     nav_command_switchWing: "Kanat Değiştir...",
     nav_command_searchLab: "Laboratuvar Örneklerini Ara",
     nav_command_viewAudit: "Denetim Günlüklerini Görüntüle",
+    verificationStatus: "Doğrulama Durumu",
+    lastVisit: "Son Ziyaret",
+    messages: "Mesajlar",
   },
   SY: {
     appName: "GULA ܦܠܛܦܘܪܡ",
@@ -5387,5 +5402,8 @@ export const translations: Record<Language, Translation> = {
     nav_command_switchWing: "Switch to Wing...",
     nav_command_searchLab: "Search Lab Samples",
     nav_command_viewAudit: "View Audit Logs",
+    verificationStatus: "Verification Status",
+    lastVisit: "Last Visit",
+    messages: "ܦܠܛ̈ܐ",
   },
 };

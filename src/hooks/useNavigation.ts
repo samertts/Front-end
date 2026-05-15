@@ -26,6 +26,7 @@ import {
   TrendingUp,
   ClipboardList,
   CreditCard,
+  MessageSquare,
   Zap as QuickZap
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -72,6 +73,7 @@ export function useNavigation() {
           { to: '/patients', icon: User, label: t.healthRecords, subtext: t.patientRegistry },
           { to: '/appointments', icon: Calendar, label: t.appointments, subtext: t.schedules },
           { to: '/intelligence', icon: BrainCircuit, label: t.medicalIntelligence, subtext: t.aiSupport },
+          { to: '/messages', icon: MessageSquare, label: t.messages, subtext: t.clinicalOps },
         ],
       },
       lab: {
@@ -86,6 +88,7 @@ export function useNavigation() {
           { to: '/lab/qc', icon: ShieldCheck, label: t.qcControl, subtext: t.standardization },
           { to: '/lab/imaging', icon: ImageIcon, label: "Imaging Lab", subtext: "Image Intelligence" },
           { to: '/lab/devices', icon: Microscope, label: t.deviceManagement, subtext: t.connectivity },
+          { to: '/messages', icon: MessageSquare, label: t.messages, subtext: t.limsOverview },
         ],
       },
       citizen: {
@@ -100,6 +103,7 @@ export function useNavigation() {
           { to: '/citizen/appointments', icon: Calendar, label: t.appointments, subtext: t.consultDoctor },
           { to: '/financial/marketplace', icon: ShoppingCart, label: "Booking Center", subtext: "Find Labs & Clinics" },
           { to: '/citizen/family', icon: Users, label: t.familyManagement, subtext: t.familyNetwork },
+          { to: '/messages', icon: MessageSquare, label: t.messages, subtext: t.assistantWelcome },
           { to: '/citizen/security', icon: ShieldCheck, label: t.privacyDashboard, subtext: t.dataControl },
         ],
       },

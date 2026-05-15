@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Globe, Shield, Building2, Users, Activity, 
   AlertCircle, ArrowUpRight, Zap, Filter, 
-  MapPin, Database, Layers, Search, Download
+  MapPin, Database, Layers, Search, Download, Share2
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { cn } from '../../lib/utils';
@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 
 import { useNavigate } from 'react-router-dom';
+import { GraphIntelligenceLayer } from '../../components/ministry/GraphIntelligenceLayer';
 
 const data = [
   { name: 'Karkh', value: 400, load: 85, active: 1240 },
@@ -247,6 +248,8 @@ export function NationalHealthGrid() {
                  </AnimatePresence>
               </div>
            </div>
+
+           <GraphIntelligenceLayer />
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="p-8 bg-white/5 border border-white/5 rounded-[3rem]">
