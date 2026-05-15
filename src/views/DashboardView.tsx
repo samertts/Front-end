@@ -55,31 +55,40 @@ const data = [
   { name: '23:59', value: 700 },
 ];
 
-const StatCard = ({ label, value, progress, color = "bg-indigo-600", icon: Icon }: { label: string, value: string, progress: number, color?: string, icon?: any }) => (
-  <div className="flex flex-col group p-6 rounded-[2.5rem] bg-white/40 backdrop-blur-md border border-white/60 shadow-sm hover:shadow-xl hover:bg-white hover:-translate-y-1 transition-all cursor-help relative overflow-hidden">
-    <div className="flex items-center justify-between mb-4">
-      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-600 transition-colors">{label}</span>
-      {Icon && <Icon size={16} className="text-slate-300 group-hover:text-indigo-400 transition-colors" />}
-    </div>
-    <div className="flex items-baseline gap-2">
-      <div className="text-3xl lg:text-4xl font-headline font-black text-slate-900 tracking-tighter">{value}</div>
-      {progress > 80 && (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-[10px] font-black text-emerald-500 flex items-center gap-0.5 bg-emerald-50 px-2 py-0.5 rounded-full"
-        >
-          <TrendingUp size={10} /> +12%
-        </motion.div>
+const StatCard = ({ label, value, progress, color = "bg-indigo-600", trend, icon: Icon }: { label: string, value: string, progress: number, color?: string, trend?: { value: string, up: boolean }, icon?: any }) => (
+  <div className="flex flex-col group p-8 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden">
+    <div className={cn("absolute top-0 left-0 w-1.5 h-full opacity-20 group-hover:opacity-100 transition-opacity", color)} />
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+        <div className={`p-2.5 rounded-2xl ${color} bg-opacity-10 dark:bg-opacity-20`}>
+          {Icon && <Icon size={18} className={color.replace('bg-', 'text-')} />}
+        </div>
+        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{label}</span>
+      </div>
+      {trend && (
+        <div className={cn(
+          "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black",
+          trend.up ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+        )}>
+          {trend.up ? <TrendingUp size={12} /> : <TrendingUp size={12} className="rotate-180" />}
+          {trend.value}
+        </div>
       )}
     </div>
-    <div className="w-full bg-slate-100/50 mt-6 h-1.5 rounded-full overflow-hidden">
-      <motion.div 
-        initial={{ width: 0 }}
-        animate={{ width: `${progress}%` }}
-        transition={{ duration: 1.5, ease: "circOut" }}
-        className={`h-full ${color} shadow-[0_0_15px_rgba(79,70,229,0.3)]`}
-      ></motion.div>
+    <div className="text-4xl lg:text-5xl font-headline font-black text-slate-900 dark:text-white tracking-tighter mb-6">{value}</div>
+    <div className="mt-auto">
+      <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">
+         <span>Utilization</span>
+         <span>{progress}%</span>
+      </div>
+      <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 1.5, ease: "circOut" }}
+          className={`h-full ${color} shadow-[0_0_15px_rgba(79,70,229,0.3)]`}
+        ></motion.div>
+      </div>
     </div>
   </div>
 );
@@ -104,32 +113,34 @@ const ActivityItem = ({ icon: Icon, title, subtitle, status, statusColor, patien
   return (
     <div 
       onClick={() => patientId && navigate(`/patients/${patientId}`)}
-      className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-4 rounded-2xl transition-all border border-transparent hover:border-slate-100 active:scale-95"
+      className="flex items-center justify-between group cursor-pointer hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 p-5 rounded-[2rem] transition-all border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/30 active:scale-[0.98]"
     >
-      <div className="flex items-center gap-4 lg:gap-6">
-        <div className="w-10 h-10 lg:w-14 lg:h-14 bg-white border border-slate-50 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-          <Icon size={20} className="text-indigo-600" />
+      <div className="flex items-center gap-5 lg:gap-7">
+        <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-3xl flex items-center justify-center shadow-sm group-hover:rotate-6 group-hover:scale-110 transition-all">
+          <Icon size={24} className="text-indigo-600" />
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-900">{title}</p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-[10px] lg:text-xs text-slate-400 font-medium">{subtitle}</p>
+          <p className="text-sm lg:text-base font-black text-slate-900 dark:text-white tracking-tight">{title}</p>
+          <div className="flex items-center gap-3 mt-1.5">
+            <p className="text-[10px] lg:text-xs text-slate-400 font-bold uppercase tracking-wider">{subtitle}</p>
             {patientId && (
               <div onClick={(e) => e.stopPropagation()}>
                 <ClickToCopy 
                    text={patientId} 
-                   className="text-[9px] font-black text-indigo-600/60 uppercase tracking-tighter bg-indigo-50 px-1.5 py-0.5 rounded hover:bg-indigo-100 transition-colors" 
+                   className="text-[9px] font-black text-indigo-600/60 uppercase tracking-tighter bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors" 
                 />
               </div>
             )}
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <div className={`px-2.5 lg:px-4 py-1.5 ${statusColor} text-[8px] lg:text-[10px] font-black rounded-full uppercase tracking-tighter`}>
+      <div className="flex items-center gap-6">
+        <div className={`px-4 lg:px-6 py-2 ${statusColor} text-[9px] lg:text-[11px] font-black rounded-2xl uppercase tracking-[0.15em] shadow-sm`}>
           {status}
         </div>
-        <ChevronRight size={16} className="text-slate-300 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
+        <div className="w-8 h-8 rounded-full border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-300 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-all group-hover:translate-x-1">
+           <ChevronRight size={18} />
+        </div>
       </div>
     </div>
   );
@@ -260,44 +271,103 @@ export function DashboardView() {
           <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-rose-500/5 blur-[100px] animate-pulse" style={{ animationDelay: '4s' }} />
         </div>
 
-        <div className="relative z-10 space-y-10 p-4 md:p-10">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 max-w-7xl mx-auto w-full">
-          <div className="editorial-stack space-y-1">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-indigo-600"
-            >
-              <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-ping" />
-              {t.dailyOverview} • {new Date().toLocaleDateString(language === 'AR' ? 'ar-EG' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-            </motion.div>
-            <div className="flex items-center gap-4">
-              <h2 className="font-headline text-3xl lg:text-5xl font-black text-slate-900 tracking-tight leading-none">{t.intelligenceCanvas}</h2>
-              <button 
-                onClick={() => setIsGuided(!isGuided)}
-                className={cn(
-                  "p-2 rounded-full border-2 transition-all group relative",
-                  isGuided ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white border-slate-100 text-slate-300 hover:text-indigo-600 hover:border-indigo-600"
+        <div className="relative z-10 space-y-10 p-4 md:p-10 pb-32">
+          {/* Quick Action Floating Hub */}
+          <div className="fixed bottom-10 right-10 z-[100] flex flex-col items-end gap-4">
+             <AnimatePresence>
+                {isGuided && (
+                   <motion.div 
+                     initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     exit={{ opacity: 0, scale: 0.5, y: 20 }}
+                     className="bg-slate-900 text-white rounded-[2rem] p-6 shadow-2xl border border-white/10 w-64 backdrop-blur-xl"
+                   >
+                      <div className="flex items-center gap-3 mb-4">
+                         <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
+                            <Sparkles size={16} />
+                         </div>
+                         <h4 className="text-xs font-black uppercase tracking-widest">{t.aiAssistant}</h4>
+                      </div>
+                      <p className="text-[10px] font-medium leading-relaxed opacity-60 mb-4">
+                         I'm monitoring regional bio-sync. Would you like to optimize current workloads?
+                      </p>
+                      <button className="w-full py-3 bg-indigo-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-colors">
+                         {t.optimizeLoad}
+                      </button>
+                   </motion.div>
                 )}
-              >
-                <Zap size={18} fill={isGuided ? "currentColor" : "none"} />
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  {isGuided ? "Guided Mode: ON" : "Toggle Guided Mode"}
+             </AnimatePresence>
+             <button className="w-16 h-16 bg-slate-900 text-white rounded-[1.8rem] shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10">
+                <Plus size={32} className="group-hover:rotate-90 transition-transform" />
+             </button>
+          </div>
+          <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+              <div className="editorial-stack space-y-1">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400"
+                >
+                  <div className="w-1.5 h-1.5 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-ping" />
+                  {t.dailyOverview} • {new Date().toLocaleDateString(language === 'AR' ? 'ar-EG' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </motion.div>
+                <div className="flex items-center gap-4">
+                  <h2 className="font-headline text-3xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none text-glow-indigo">{t.intelligenceCanvas}</h2>
+                  <button 
+                    onClick={() => setIsGuided(!isGuided)}
+                    className={cn(
+                      "p-2 rounded-full border-2 transition-all group relative",
+                      isGuided ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "bg-white dark:bg-slate-800 border-slate-100 dark:border-white/10 text-slate-300 hover:text-indigo-600 hover:border-indigo-600"
+                    )}
+                  >
+                    <Zap size={18} fill={isGuided ? "currentColor" : "none"} />
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      {isGuided ? "Guided Mode: ON" : "Toggle Guided Mode"}
+                    </div>
+                  </button>
                 </div>
-              </button>
+              </div>
+              <div className="flex gap-4 w-full sm:w-auto">
+                <button className="flex-1 sm:flex-none px-6 py-3 bg-white border border-slate-100 text-slate-700 font-bold text-sm rounded-2xl shadow-xl shadow-slate-200/40 hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-95 group">
+                  <Download size={18} className="text-indigo-600 group-hover:-translate-y-1 transition-transform" />
+                  {t.exportReport}
+                </button>
+                <button className="flex-1 sm:flex-none px-8 py-3 bg-indigo-600 text-white font-bold text-sm rounded-2xl shadow-2xl shadow-indigo-200 hover:bg-slate-900 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
+                  <Plus size={22} className="stroke-[3]" />
+                  {t.newDiagnosis}
+                </button>
+              </div>
             </div>
+
+            {/* Sovereign Command Palette - Quick Search & Action Bar */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+              <div className="relative bg-white/60 dark:bg-slate-900/40 backdrop-blur-3xl border border-white dark:border-white/5 rounded-[2rem] shadow-2xl shadow-slate-200/50 dark:shadow-black/50 p-2 flex items-center gap-2 ring-1 ring-slate-200 dark:ring-white/10 group-focus-within:ring-indigo-500/50 transition-all">
+                <div className="flex items-center gap-4 px-4 flex-1">
+                  <LayoutDashboard className="text-indigo-600" size={20} />
+                  <input 
+                    type="text" 
+                    placeholder={language === 'AR' ? "ابحث عن مريض، فحص، أو أمر نظام..." : "Search patient, diagnostic, or system command..."} 
+                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-800 dark:text-white placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="hidden md:flex items-center gap-1">
+                   <div className="px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <span className="opacity-40">CMD</span>
+                      <span className="w-4 h-4 rounded-md bg-white dark:bg-white/10 flex items-center justify-center text-[8px] border border-slate-200 dark:border-white/20">K</span>
+                   </div>
+                   <button className="p-3 text-slate-400 hover:text-indigo-600 transition-colors">
+                      <Settings size={18} />
+                   </button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-          <div className="flex gap-4 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-none px-6 py-3 bg-white border border-slate-100 text-slate-700 font-bold text-sm rounded-2xl shadow-xl shadow-slate-200/40 hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-95 group">
-              <Download size={18} className="text-indigo-600 group-hover:-translate-y-1 transition-transform" />
-              {t.exportReport}
-            </button>
-            <button className="flex-1 sm:flex-none px-8 py-3 bg-indigo-600 text-white font-bold text-sm rounded-2xl shadow-2xl shadow-indigo-200 hover:bg-slate-900 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
-              <Plus size={22} className="stroke-[3]" />
-              {t.newDiagnosis}
-            </button>
-          </div>
-        </div>
 
         <motion.div 
           variants={container}
@@ -305,7 +375,44 @@ export function DashboardView() {
           animate="show"
           className="grid grid-cols-12 gap-8 max-w-7xl mx-auto w-full"
         >
-          {/* Decision Intelligence Layer */}
+              <div className="col-span-12">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard 
+                      label={t.activePos || "Active Users"} 
+                      value="12.4k" 
+                      progress={78} 
+                      color="bg-indigo-600" 
+                      icon={Users} 
+                      trend={{ value: "+2.4%", up: true }}
+                    />
+                    <StatCard 
+                      label={t.successRate || "Success Rate"} 
+                      value="99.2%" 
+                      progress={92} 
+                      color="bg-emerald-500" 
+                      icon={ActivityIcon} 
+                      trend={{ value: "+0.4%", up: true }}
+                    />
+                    <StatCard 
+                      label={t.lowStock || "Low Stock"} 
+                      value="12" 
+                      progress={45} 
+                      color="bg-amber-500" 
+                      icon={ShoppingCart} 
+                      trend={{ value: "+2", up: true }}
+                    />
+                    <StatCard 
+                      label={t.criticalAlerts || "Critical Alerts"} 
+                      value="04" 
+                      progress={12} 
+                      color="bg-rose-500" 
+                      icon={TriangleAlert} 
+                      trend={{ value: "-25%", up: false }}
+                    />
+                 </div>
+              </div>
+
+              {/* Decision Intelligence Layer */}
           <div className="col-span-12">
             <SmartAlertSystem 
               alerts={alerts} 

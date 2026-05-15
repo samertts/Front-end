@@ -249,16 +249,69 @@ export function WorkQueue() {
   };
 
   const handleBulkClaim = async () => {
-    const taskIds = Array.from(selectedTasks);
-    try {
-      for (const id of taskIds) {
-        await TaskService.updateTaskStatus(id, 'claimed');
-      }
-      setSelectedTasks(new Set());
-      toast.success(`Claimed ${taskIds.length} tasks`);
-    } catch (error) {
-      console.error(error);
+    const unassignedTasksInSelection = tasks.filter(t => 
+      selectedTasks.has(t.id) && t.status === 'unassigned'
+    );
+
+    if (unassignedTasksInSelection.length === 0) {
+      toast.error('No unassigned tasks selected');
+      return;
     }
+
+    triggerConfirm(
+      'Bulk Claim Tasks',
+      `Assigning ${unassignedTasksInSelection.length} samples to your queue. Are you ready to begin processing this batch?`,
+      async () => {
+        setIsProcessing('bulk');
+        try {
+          for (const task of unassignedTasksInSelection) {
+            await TaskService.updateTaskStatus(task.id, 'claimed');
+          }
+          setSelectedTasks(new Set());
+          toast.success(`Successfully claimed ${unassignedTasksInSelection.length} tasks`, {
+            description: 'The tasks have been added to your personal work queue.'
+          });
+        } catch (error) {
+          console.error(error);
+          toast.error('Partial failure during bulk claim');
+        } finally {
+          setIsProcessing(null);
+        }
+      },
+      'primary'
+    );
+  };
+
+  const selectAllUnassigned = () => {
+    // We only want to select unassigned tasks that are currently visible (filtered)
+    const visibleUnassignedIds = labTasks
+      .filter(t => filterSection === 'All' || t.section === filterSection)
+      .filter(t => filterPriority === 'All' || t.priority === filterPriority.toLowerCase())
+      .filter(t => {
+          if (filterSla === 'All') return true;
+          if (filterSla === 'Critical') return t.timeRemaining < 15;
+          if (filterSla === 'Warning') return t.timeRemaining < 30 && t.timeRemaining >= 15;
+          return true;
+      })
+      .filter(t => {
+          if (!searchTerm) return true;
+          const search = searchTerm.toLowerCase();
+          return (
+            t.sampleId.toLowerCase().includes(search) ||
+            t.patientName.toLowerCase().includes(search) ||
+            t.testName.toLowerCase().includes(search)
+          );
+      })
+      .filter(t => t.status === 'unassigned')
+      .map(t => t.id);
+
+    if (visibleUnassignedIds.length === 0) {
+      toast.info('No unassigned tasks match the current filters');
+      return;
+    }
+
+    setSelectedTasks(new Set(visibleUnassignedIds));
+    toast.info(`Selected ${visibleUnassignedIds.length} unassigned tasks`);
   };
 
   const handlePriorityChange = async (taskId: string, newPriority: TaskPriority) => {
@@ -537,8 +590,15 @@ export function WorkQueue() {
                    </motion.div>
                  )}
                </AnimatePresence>
-               <div className="flex gap-2">
-                  <div className="relative">
+                <div className="flex gap-2">
+                   <button 
+                     onClick={selectAllUnassigned}
+                     className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-indigo-600 hover:text-indigo-600 transition-all flex items-center gap-2"
+                   >
+                     <Box size={14} />
+                     Select All Unassigned
+                   </button>
+                   <div className="relative">
                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
                      <input 
                         type="text" 
@@ -710,7 +770,7 @@ export function WorkQueue() {
                                  disabled={isProcessing === task.id}
                                  className="flex-1 py-5 bg-indigo-600 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:bg-slate-900 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group/btn"
                                >
-                                 {isProcessing === task.id ? (
+                                 {isProcessing === task.id || isProcessing === 'bulk' && selectedTasks.has(task.id) ? (
                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                  ) : (
                                    <>

@@ -127,6 +127,34 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .animate-gradient-xy {
+    background-size: 400% 400%;
+    animation: gradient-xy 15s ease infinite;
+  }
+
+  @keyframes gradient-xy {
+    0%, 100% {
+      background-position: 0% 0%;
+    }
+    25% {
+      background-position: 100% 0%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    75% {
+      background-position: 0% 100%;
+    }
+  }
+
+  .text-glow-indigo {
+    text-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  }
+
+  .animate-spin-slow {
+    animation: spin 12s linear infinite;
+  }
 }
 
 html {

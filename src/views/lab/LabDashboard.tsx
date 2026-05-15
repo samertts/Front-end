@@ -17,41 +17,41 @@ import { LabDeviceMonitor } from '../../components/LabDeviceMonitor';
 import { OperationalIntelligence } from '../../components/lab/OperationalIntelligence';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
 
-const StatCard = ({ title, value, subtext, icon: Icon, trend, color, bg }: any) => (
+const StatCard = ({ title, value, subtext, icon: Icon, trend, color = "bg-indigo-600", bg }: any) => (
   <motion.div 
     whileHover={{ y: -5, scale: 1.01 }}
-    className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white shadow-sm relative overflow-hidden group transition-all hover:shadow-2xl hover:shadow-indigo-100 hover:bg-white"
+    className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group transition-all hover:shadow-2xl hover:shadow-indigo-500/10"
   >
-    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-         style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+    <div className={cn("absolute top-0 left-0 w-1.5 h-full opacity-20 group-hover:opacity-100 transition-opacity", color)} />
     
-    <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-[0.05] -mr-8 -mt-8 rounded-full blur-3xl transition-all group-hover:opacity-[0.1]", bg)} />
-    
-    <div className="flex justify-between items-start mb-6 relative z-10">
-      <div className="p-4 bg-white shadow-sm rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all duration-500">
-        <Icon size={24} className="group-hover:scale-110 transition-transform" />
+    <div className="flex justify-between items-start mb-8 relative z-10">
+      <div className={cn("p-4 rounded-2xl bg-opacity-10 dark:bg-opacity-20 flex items-center justify-center transition-all duration-500", color)}>
+        <Icon size={24} className={cn("group-hover:scale-110 transition-transform", color.replace('bg-', 'text-'))} />
       </div>
       {trend && (
-        <div className="flex flex-col items-end">
-           <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full shadow-sm">{trend}</span>
-           <div className="mt-1 flex gap-0.5">
-              {[1,2,3].map(i => <div key={i} className="w-1 h-3 bg-emerald-100 rounded-full" />)}
-           </div>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest shadow-sm">
+           <TrendingUp size={14} />
+           {trend}
         </div>
       )}
     </div>
     <div className="relative z-10">
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-600 transition-colors">{title}</h3>
-      <div className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-2">{value}</div>
-      <div className="flex items-center gap-2">
-         <div className="h-1 flex-1 bg-slate-100/50 rounded-full overflow-hidden">
+      <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] mb-3 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{title}</h3>
+      <div className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-6 font-headline">{value}</div>
+      <div className="space-y-3">
+         <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-400">
+            <span>Utilization</span>
+            <span>70%</span>
+         </div>
+         <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
             <motion.div 
                initial={{ width: 0 }}
                animate={{ width: '70%' }}
-               className={cn("h-full rounded-full opacity-60", bg)}
+               transition={{ duration: 1.5, ease: "circOut" }}
+               className={cn("h-full rounded-full opacity-100 shadow-[0_0_15px_rgba(79,70,229,0.3)]", color)}
             />
          </div>
-         <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight whitespace-nowrap">{subtext}</p>
+         <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter opacity-60">{subtext}</p>
       </div>
     </div>
   </motion.div>
@@ -129,10 +129,10 @@ export function LabDashboard() {
   };
 
   const metrics = [
-    { title: t.samplesInQueue, value: tasks.filter(t => t.status !== 'completed').length, icon: FlaskConical, color: 'text-indigo-600', bg: 'bg-indigo-600', trend: "-12%" },
-    { title: t.avgTat, value: '2.4h', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-600', trend: "Optimal" },
-    { title: t.validatedToday, value: tasks.filter(t => t.status === 'completed').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-600', trend: "+4%" },
-    { title: t.qcAnomalies, value: '0', icon: AlertCircle, color: 'text-slate-400', bg: 'bg-slate-50' },
+    { title: t.samplesInQueue, value: tasks.filter(t => t.status !== 'completed').length, icon: FlaskConical, color: 'bg-indigo-600', trend: "-12%" },
+    { title: t.avgTat, value: '2.4h', icon: Clock, color: 'bg-amber-600', trend: "Optimal" },
+    { title: t.validatedToday, value: tasks.filter(t => t.status === 'completed').length, icon: CheckCircle2, color: 'bg-emerald-600', trend: "+4%" },
+    { title: t.qcAnomalies, value: '0', icon: AlertCircle, color: 'bg-rose-500' },
   ];
 
   const displayedTasks = tasks.filter(t => 
@@ -182,50 +182,63 @@ export function LabDashboard() {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-10 rounded-[3.5rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden group border border-white/5">
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 blur-[120px] -mr-64 -mt-64 transition-transform group-hover:scale-110 pointer-events-none" />
-         <div className="absolute bottom-0 left-0 w-64 h-64 bg-rose-500/5 blur-[80px] -ml-32 -mb-32 pointer-events-none" />
-         <div className="relative z-10 flex flex-col xl:flex-row items-center gap-12">
-            <div className="flex-1 space-y-6">
-               <div className="flex items-center gap-4">
-                  <div className="px-4 py-1.5 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.25em] border border-white/20 backdrop-blur-sm">System-Wide Supply Strategy</div>
-                  <div className="flex items-center gap-1.5">
-                     <Zap size={12} className="text-amber-400 fill-amber-400" />
-                     <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">AI Optimized</span>
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-12 lg:p-20 rounded-[4rem] text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group border border-white/10">
+         <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600/10 to-emerald-500/10 animate-gradient-xy opacity-50" />
+         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-500/20 blur-[150px] -mr-96 -mt-96 transition-transform duration-1000 group-hover:scale-110 pointer-events-none" />
+         
+         <div className="relative z-10 flex flex-col xl:flex-row xl:items-end justify-between gap-16">
+            <div className="flex-1 space-y-10">
+               <div className="flex flex-wrap items-center gap-6">
+                  <div className="px-6 py-2 bg-white/10 backdrop-blur-xl rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] border border-white/20">System-Wide Supply Strategy</div>
+                  <div className="flex items-center gap-3 px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+                     <Zap size={14} className="fill-emerald-400" />
+                     <span className="text-[11px] font-black uppercase tracking-widest italic">AI Optimized Mode</span>
                   </div>
                </div>
-               <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase leading-[0.9] font-headline">
-                  Inter-Cluster <br /><span className="text-indigo-400">Resource</span> Logistics
+               
+               <h2 className="text-5xl lg:text-7xl font-black tracking-tight uppercase leading-[0.85] font-headline">
+                  Inter-Cluster <br /><span className="text-indigo-400 text-glow-indigo italic">Resource</span> Logistics
                </h2>
-               <p className="text-base text-indigo-100/60 font-medium leading-relaxed max-w-xl">
-                 Unified view of reagents, consumables, and strategic reserves across the National Grid. Predictive re-routing active for Basrah & Nineveh nodes.
+               
+               <p className="text-lg lg:text-xl text-indigo-100/70 font-medium leading-relaxed max-w-2xl">
+                 Unified view of reagents, consumables, and strategic reserves across the National Grid. Predictive re-routing active for <span className="text-white underline decoration-indigo-500 underline-offset-8">Basrah & Nineveh</span> nodes.
                </p>
-               <div className="flex flex-wrap gap-4 pt-4">
-                  <button className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/40 hover:scale-[1.02] active:scale-95 transition-all">
+               
+               <div className="flex flex-wrap gap-4 pt-6">
+                  <button className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-900/40 hover:scale-[1.03] hover:shadow-white/20 active:scale-95 transition-all">
                      View Supply Map
                   </button>
-                  <button className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">
+                  <button className="px-10 py-5 bg-white/5 border border-white/10 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] hover:bg-white/10 backdrop-blur-xl transition-all">
                      Emergency Request
                   </button>
                </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-4 w-full xl:w-fit mt-8 xl:mt-0">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full xl:w-80">
                {[
-                 { label: 'Global Reagents', val: '92%', status: 'Stable' },
-                 { label: 'Consumables', val: 'Low', status: 'Alert' },
-                 { label: 'Reserve Energy', val: '100%', status: 'Nominal' },
-                 { label: 'Asset Reliability', val: '99.2%', status: 'High' }
+                 { label: 'Global Reagents', val: '92%', status: 'Stable', color: 'emerald' },
+                 { label: 'Consumables', val: 'Low', status: 'Alert', color: 'rose' },
+                 { label: 'Reserve Energy', val: '100%', status: 'Nominal', color: 'indigo' },
+                 { label: 'Asset Reliability', val: '99.2%', status: 'High', color: 'blue' }
                ].map((item, i) => (
-                 <div key={i} className="p-6 bg-white/10 border border-white/10 rounded-[2rem] backdrop-blur-md min-w-[160px] flex flex-col justify-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-50 block mb-1">{item.label}</span>
-                    <p className="text-xl font-black mb-1">{item.val}</p>
-                    <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-white/10 rounded-lg self-start">{item.status}</span>
+                 <div key={i} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] backdrop-blur-3xl hover:bg-white/10 transition-colors">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-40 block mb-2">{item.label}</span>
+                    <p className="text-3xl font-black mb-3 font-headline">{item.val}</p>
+                    <div className={cn(
+                      "inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest",
+                      item.color === 'emerald' ? "bg-emerald-500/20 text-emerald-400" :
+                      item.color === 'rose' ? "bg-rose-500/20 text-rose-400" :
+                      "bg-indigo-500/20 text-indigo-400"
+                    )}>
+                      <div className={cn("w-1 h-1 rounded-full", `bg-${item.color}-400`)} />
+                      {item.status}
+                    </div>
                  </div>
                ))}
             </div>
          </div>
 
-         <div className="relative z-10 flex flex-wrap items-center gap-4">
+         <div className="relative z-10 flex flex-wrap items-center gap-4 mt-20 pt-10 border-t border-white/5">
             <button 
               onClick={() => setIsRegistering(true)}
               className="px-8 py-4 bg-indigo-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-indigo-900/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group"
