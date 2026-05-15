@@ -52,6 +52,7 @@ async function startServer() {
         senderName,
         type: type || 'text',
         timestamp: new Date().toISOString(),
+        metadata: data.metadata || {}
       };
 
       // Persist to Firestore if available
@@ -68,6 +69,16 @@ async function startServer() {
 
       // Broadcast to others in the room
       io.to(roomId).emit('receive_message', messageData);
+    });
+
+    socket.on('call_signal', (data) => {
+      const { roomId, signal, type } = data;
+      socket.to(roomId).emit('incoming_call', { signal, from: socket.id, type });
+    });
+
+    socket.on('accept_call', (data) => {
+      const { to, signal } = data;
+      io.to(to).emit('call_accepted', signal);
     });
 
     socket.on('disconnect', () => {

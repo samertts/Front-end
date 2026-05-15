@@ -374,6 +374,7 @@ export interface Translation {
   activeClusters: string;
   threatIndex: string;
   helpCenter: string;
+  support: string;
   guidedMode: string;
   assistantWelcome: string;
   howCanIHelp: string;
@@ -1265,6 +1266,7 @@ export const translations: Record<Language, Translation> = {
     activeClusters: "Active Clusters",
     threatIndex: "Threat Index",
     helpCenter: "Help Center",
+    support: "Technical Support",
     guidedMode: "Guided Mode",
     assistantWelcome: "Welcome to GULA Assistant",
     howCanIHelp: "How can I help you navigate the system today?",
@@ -2165,6 +2167,7 @@ export const translations: Record<Language, Translation> = {
     activeClusters: "العناقيد النشطة",
     threatIndex: "مؤشر التهديد",
     helpCenter: "مركز المساعدة",
+    support: "الدعم الفني",
     guidedMode: "الوضع الإرشادي",
     assistantWelcome: "مرحباً بك في مساعد جولا",
     howCanIHelp: "كيف يمكنني مساعدتك في استكشاف النظام اليوم؟",
@@ -3065,6 +3068,7 @@ export const translations: Record<Language, Translation> = {
     activeClusters: "هێشوە چالاکەکان",
     threatIndex: "نیشاندەری هەڕەشە",
     helpCenter: "سەنتەری یارمەتی",
+    support: "پشتیوانی تەکنیکی",
     guidedMode: "دۆخی ڕێبەرایەتی",
     assistantWelcome: "بەخێربێن بۆ یاریدەدەری گۆلا",
     howCanIHelp: "چۆن دەتوانم یارمەتیت بدەم؟",
@@ -3965,6 +3969,7 @@ export const translations: Record<Language, Translation> = {
     activeClusters: "Active Clusters",
     threatIndex: "Threat Index",
     helpCenter: "Help Center",
+    support: "Teknik Destek",
     guidedMode: "Guided Mode",
     assistantWelcome: "GULA Assistant",
     howCanIHelp: "How can I help you today?",
@@ -4865,6 +4870,7 @@ export const translations: Record<Language, Translation> = {
     activeClusters: "Active Clusters",
     threatIndex: "Threat Index",
     helpCenter: "Help Center",
+    support: "Support",
     guidedMode: "Guided Mode",
     assistantWelcome: "GULA Assistant",
     howCanIHelp: "How can I help you today?",

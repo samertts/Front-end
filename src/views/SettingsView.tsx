@@ -24,7 +24,11 @@ import {
   Sparkles,
   Microscope,
   AlertCircle,
-  Zap
+  Zap,
+  HelpCircle,
+  BookOpen,
+  MessageCircle,
+  FileText
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Language } from '../translations';
@@ -37,7 +41,7 @@ import { useFeatureFlags } from '../store/featureFlags';
 import { BehavioralBiometrics } from '../components/BehavioralBiometrics';
 import { SovereignHealthID } from '../components/SovereignHealthID';
 
-type TabId = 'profile' | 'appearance' | 'language' | 'security' | 'ai' | 'compliance' | 'network' | 'system';
+type TabId = 'profile' | 'appearance' | 'language' | 'security' | 'ai' | 'compliance' | 'network' | 'system' | 'help';
 
 interface Tab {
   id: TabId;
@@ -101,6 +105,7 @@ export function SettingsView() {
     { id: 'compliance', label: t.compliance, icon: Lock },
     { id: 'network', label: t.connectivity, icon: Globe },
     { id: 'system', label: t.infrastructure, icon: Cpu },
+    { id: 'help', label: t.helpCenter, icon: HelpCircle },
   ];
 
   const filteredTabs = searchQuery 
@@ -699,6 +704,86 @@ export function SettingsView() {
                    {t.clearNow}
                 </button>
               </div>
+          </motion.div>
+        );
+      case 'help':
+        return (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="relative p-8 bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-[3rem] text-white overflow-hidden shadow-2xl">
+               <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12 transition-transform pointer-events-none">
+                  <HelpCircle size={240} className="text-white" />
+               </div>
+               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div>
+                     <h3 className="text-3xl font-black uppercase tracking-tighter italic mb-2">Technical Guidance Center</h3>
+                     <p className="text-indigo-200 text-sm max-w-md font-bold uppercase tracking-widest">Operational Manuals & Direct Support Protocols</p>
+                  </div>
+                  <button className="px-8 py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl">
+                     Open Support Ticket
+                  </button>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:border-indigo-200 transition-all group">
+                  <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6 group-hover:scale-110 transition-transform">
+                     <BookOpen size={24} />
+                  </div>
+                  <h4 className="text-xl font-black uppercase tracking-tight mb-2">Operational Manuals</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed mb-6">Access detailed documentation on clinical tools, lab synthesis, and sovereignty infrastructure.</p>
+                  <div className="space-y-3">
+                     {['Doctor Intelligence Manual', 'Lab Syntax Guide', 'Registry Protocol v4.2'].map(text => (
+                        <div key={text} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-indigo-50/50 cursor-pointer transition-colors">
+                           <span className="text-xs font-bold text-slate-700">{text}</span>
+                           <FileText size={14} className="text-slate-300" />
+                        </div>
+                     ))}
+                  </div>
+               </div>
+
+               <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:border-indigo-200 transition-all group">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 transition-transform">
+                     <MessageCircle size={24} />
+                  </div>
+                  <h4 className="text-xl font-black uppercase tracking-tight mb-2">{t.support}</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed mb-6">Real-time connectivity with GULA infrastructure specialists and regional medical leads.</p>
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+                           <div className="w-full h-full bg-indigo-500/20 flex items-center justify-center text-indigo-600 font-black text-xs">HQ</div>
+                        </div>
+                        <div className="flex-1">
+                           <div className="text-xs font-bold text-slate-900">National Medical Service</div>
+                           <div className="text-[10px] text-emerald-500 font-black uppercase animate-pulse">Average response: 4 mins</div>
+                        </div>
+                        <button className="px-3 py-1 bg-white text-indigo-600 border border-indigo-100 rounded-lg text-[9px] font-black uppercase">Chat</button>
+                     </div>
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                           <span>Emergency Hotline</span>
+                        </div>
+                        <div className="text-lg font-black text-slate-900 tracking-tighter">112-992-GULA</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white">
+               <h4 className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-6">Frequently Asked Protocols</h4>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  {[
+                     { q: 'How is data sovereignty verified?', a: 'All records are quantum-hashed at the synthesis layer, ensuring absolute source integrity.' },
+                     { q: 'Can I override AI diagnostic suggestions?', a: 'Clinical leads maintain absolute final authority. AI provides prioritized neural reasoning only.' },
+                     { q: 'What happens during a network severance?', a: 'The GULA Differential Sync engine activates local bio-registry cache until link restoration.' },
+                     { q: 'How do I onboard a new synthesis lab?', a: 'Refer to the Ministry Integration Gateway for node licensing and hardware verification.' }
+                  ].map((faq, i) => (
+                     <div key={i} className="space-y-2">
+                        <div className="text-sm font-black text-white italic">Q: {faq.q}</div>
+                        <p className="text-[11px] text-slate-400 font-medium leading-relaxed">{faq.a}</p>
+                     </div>
+                  ))}
+               </div>
+            </div>
           </motion.div>
         );
       default:

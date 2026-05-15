@@ -1,4 +1,6 @@
-import io from 'socket.io-client';
+import * as socketIo from 'socket.io-client';
+
+const io = (socketIo as any).default || (socketIo as any).io || socketIo;
 
 class ChatService {
   private socket: any = null;
@@ -31,6 +33,36 @@ class ChatService {
   sendMessage(data: { roomId: string, message: string, senderId: string, senderName: string, type?: string }) {
     if (this.socket?.connected) {
       this.socket.emit('send_message', data);
+    }
+  }
+
+  sendTyping(roomId: string, userId: string, typing: boolean) {
+    if (this.socket?.connected) {
+      this.socket.emit('typing', { roomId, userId, typing });
+    }
+  }
+
+  onTyping(callback: (data: { userId: string, typing: boolean }) => void) {
+    if (this.socket) {
+      this.socket.on('user_typing', callback);
+    }
+  }
+
+  sendCallSignal(roomId: string, signal: any, type: 'voice' | 'video') {
+    if (this.socket?.connected) {
+      this.socket.emit('call_signal', { roomId, signal, type });
+    }
+  }
+
+  onIncomingCall(callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.on('incoming_call', callback);
+    }
+  }
+
+  onCallAccepted(callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.on('call_accepted', callback);
     }
   }
 
