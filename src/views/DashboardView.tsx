@@ -20,6 +20,7 @@ import {
   TrendingUp,
   AlertTriangle,
   Microscope,
+  Network,
   Users,
   ChevronRight,
   Globe,
@@ -148,6 +149,7 @@ const ActivityItem = ({ icon: Icon, title, subtitle, status, statusColor, patien
 
 export function DashboardView() {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTasks, setActiveTasks] = useState<Task[]>([]);
@@ -386,6 +388,14 @@ export function DashboardView() {
                       trend={{ value: "+2.4%", up: true }}
                     />
                     <StatCard 
+                      label={t.interoperability || "Interoperability"} 
+                      value="98.4%" 
+                      progress={98} 
+                      color="bg-indigo-600" 
+                      icon={Network} 
+                      trend={{ value: "+1.2%", up: true }}
+                    />
+                    <StatCard 
                       label={t.successRate || "Success Rate"} 
                       value="99.2%" 
                       progress={92} 
@@ -602,6 +612,35 @@ export function DashboardView() {
           {/* Intelligence Sidebar */}
           <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
             
+            {/* National Network Hub Card */}
+            <motion.div 
+               variants={item}
+               onClick={() => navigate('/network')}
+               className="p-10 bg-slate-900 rounded-[3.5rem] border border-white/10 text-white shadow-2xl relative overflow-hidden group cursor-pointer"
+            >
+               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                 <Network className="text-indigo-400" size={140} />
+               </div>
+               <div className="relative z-10 flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                     <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-xl">
+                        <Globe size={20} className="text-indigo-400" />
+                     </div>
+                     <span className="text-[11px] font-black uppercase tracking-[0.3em] font-mono">{t.networkHub}</span>
+                  </div>
+                  <h3 className="text-3xl lg:text-4xl font-black italic tracking-tighter leading-tight font-headline">
+                     National Health <br /> <span className="text-indigo-400 text-glow-indigo">Interconnect</span>
+                   </h3>
+                   <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-4 py-2 rounded-xl border border-emerald-400/20 self-start">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                      128 Institutions Syncing
+                   </div>
+                   <p className="text-xs text-indigo-100/60 font-medium leading-relaxed max-w-[200px]">
+                     Real-time telemetry and interoperability layer active across all regional clusters.
+                   </p>
+               </div>
+            </motion.div>
+
             {/* Recent Decisions & Logs */}
             <motion.section variants={item} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col h-full">
               <div className="flex justify-between items-center mb-10">

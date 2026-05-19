@@ -375,6 +375,11 @@ export interface Translation {
   threatIndex: string;
   helpCenter: string;
   support: string;
+  networkHub: string;
+  institutionSync: string;
+  dataCorridor: string;
+  nodeStatus_active: string;
+  nodeStatus_syncing: string;
   guidedMode: string;
   assistantWelcome: string;
   howCanIHelp: string;
@@ -1267,6 +1272,11 @@ export const translations: Record<Language, Translation> = {
     threatIndex: "Threat Index",
     helpCenter: "Help Center",
     support: "Technical Support",
+    networkHub: "National Network Hub",
+    institutionSync: "Institutional Synergy",
+    dataCorridor: "Active Data Corridor",
+    nodeStatus_active: "Fully Operational",
+    nodeStatus_syncing: "Syncing Buffer",
     guidedMode: "Guided Mode",
     assistantWelcome: "Welcome to GULA Assistant",
     howCanIHelp: "How can I help you navigate the system today?",
@@ -2168,6 +2178,11 @@ export const translations: Record<Language, Translation> = {
     threatIndex: "مؤشر التهديد",
     helpCenter: "مركز المساعدة",
     support: "الدعم الفني",
+    networkHub: "مركز الترابط الوطني",
+    institutionSync: "التآزر المؤسسي",
+    dataCorridor: "ممر البيانات النشط",
+    nodeStatus_active: "يعمل بكامل الطاق",
+    nodeStatus_syncing: "جاري المزامنة",
     guidedMode: "الوضع الإرشادي",
     assistantWelcome: "مرحباً بك في مساعد جولا",
     howCanIHelp: "كيف يمكنني مساعدتك في استكشاف النظام اليوم؟",
@@ -3069,6 +3084,11 @@ export const translations: Record<Language, Translation> = {
     threatIndex: "نیشاندەری هەڕەشە",
     helpCenter: "سەنتەری یارمەتی",
     support: "پشتیوانی تەکنیکی",
+    networkHub: "National Network Hub",
+    institutionSync: "Institutional Synergy",
+    dataCorridor: "Active Data Corridor",
+    nodeStatus_active: "Fully Operational",
+    nodeStatus_syncing: "Syncing Buffer",
     guidedMode: "دۆخی ڕێبەرایەتی",
     assistantWelcome: "بەخێربێن بۆ یاریدەدەری گۆلا",
     howCanIHelp: "چۆن دەتوانم یارمەتیت بدەم؟",
@@ -3970,6 +3990,11 @@ export const translations: Record<Language, Translation> = {
     threatIndex: "Threat Index",
     helpCenter: "Help Center",
     support: "Teknik Destek",
+    networkHub: "National Network Hub",
+    institutionSync: "Institutional Synergy",
+    dataCorridor: "Active Data Corridor",
+    nodeStatus_active: "Fully Operational",
+    nodeStatus_syncing: "Syncing Buffer",
     guidedMode: "Guided Mode",
     assistantWelcome: "GULA Assistant",
     howCanIHelp: "How can I help you today?",
@@ -4871,6 +4896,11 @@ export const translations: Record<Language, Translation> = {
     threatIndex: "Threat Index",
     helpCenter: "Help Center",
     support: "Support",
+    networkHub: "National Network Hub",
+    institutionSync: "Institutional Synergy",
+    dataCorridor: "Active Data Corridor",
+    nodeStatus_active: "Fully Operational",
+    nodeStatus_syncing: "Syncing Buffer",
     guidedMode: "Guided Mode",
     assistantWelcome: "GULA Assistant",
     howCanIHelp: "How can I help you today?",

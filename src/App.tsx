@@ -5,6 +5,7 @@ import { DashboardView } from './views/DashboardView';
 import { RecordsView } from './views/RecordsView';
 import { AppointmentsView } from './views/AppointmentsView';
 import { LabResultsView } from './views/LabResultsView';
+import NationalNetworkView from './views/NationalNetworkView';
 import { SettingsView } from './views/SettingsView';
 import { LandingAuthView } from './views/LandingAuthView';
 import { LabDashboard } from './views/lab/LabDashboard';
@@ -218,6 +219,7 @@ function AnimatedRoutes() {
         
         {/* Shared */}
         <Route path="/messages" element={<CommunicationHub />} />
+        <Route path="/network" element={<NationalNetworkView />} />
         <Route path="/settings" element={<SettingsView />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
