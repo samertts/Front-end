@@ -6,7 +6,7 @@ import { getClinicalInsight } from '../../services/geminiService';
 import { cn } from '../../lib/utils';
 
 export function SymptomChecker() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([
     { role: 'ai', text: "GULA Health Intelligence online. Describe your symptoms for a triage analysis." }
   ]);
@@ -30,10 +30,12 @@ export function SymptomChecker() {
     
     const insight = await getClinicalInsight(
       `Symptom description: ${messageText}. Provide triage: Urgency (Emergency/Urgent/Non-Urgent), potential patterns, and next steps.`,
-      "System: Medical Triage Support. Safety first. Always include disclaimer."
+      "System: Medical Triage Support. Safety first. Always include disclaimer.",
+      undefined,
+      language
     );
     
-    setMessages(prev => [...prev, { role: 'ai', text: insight }]);
+    setMessages(prev => [...prev, { role: 'ai', text: insight.text }]);
     setLoading(false);
   };
 

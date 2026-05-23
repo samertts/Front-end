@@ -17,7 +17,7 @@ import { DoctorPriorityQueue } from '../../components/doctor/DoctorPriorityQueue
 import { AdvancedTriageDetails } from '../../components/doctor/AdvancedTriageDetails';
 
 export function DoctorIntelligence() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [activeView, setActiveView] = useState<'chat' | 'analysis' | 'explainable' | 'triage'>('chat');
   const [isListening, setIsListening] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string; data?: any }[]>([
@@ -42,9 +42,9 @@ export function DoctorIntelligence() {
     setIsTyping(true);
 
     const context = "Current Patient Profile: Male, 52y. History of Hypertension. Current Symptoms: Fatigue, persistent cough (3 weeks), night sweats. Lab: CRP 42 (High), WBC 11.2 (Slightly high). Chest X-Ray: Infiltrate in RUL.";
-    const response = await getClinicalInsight(userMessage, context);
+    const result = await getClinicalInsight(userMessage, context, undefined, language);
     
-    setMessages(prev => [...prev, { role: 'ai', text: response }]);
+    setMessages(prev => [...prev, { role: 'ai', text: result.text }]);
     setIsTyping(false);
   };
 
