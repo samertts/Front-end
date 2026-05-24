@@ -220,6 +220,16 @@ export interface GulaEvent {
   createdAt: any;
 }
 
+export interface BiometricCredential {
+  credentialId: string;
+  publicKey: string;
+  deviceName: string;
+  createdAt: string;
+  lastUsedAt?: string;
+  userVerification: 'required' | 'preferred' | 'discouraged';
+  keyAlgorithm: string;
+}
+
 export interface UserProfile {
   uid: string;
   role: UserRole;
@@ -234,4 +244,6 @@ export interface UserProfile {
   verified: boolean;
   identityLevel?: number;
   createdAt: string;
+  biometricCredentials?: BiometricCredential[];
+  isBiometricEnrolled?: boolean;
 }

@@ -2,25 +2,33 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { UserProfile } from '../types/domain';
+import { UserProfile, BiometricCredential } from '../types/domain';
 import { SyncService } from '../services/SyncService';
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   isLoading: boolean;
-  bypassAuth: (profile: UserProfile) => void;
+  isBiometricVerified: boolean;
+  setIsBiometricVerified: (val: boolean) => void;
+  bypassAuth: (profile: UserProfile, biometricPassed?: boolean) => void;
   logout: () => void;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  registerBiometricCredential: (credential: BiometricCredential) => Promise<void>;
+  removeBiometricCredential: (credentialId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   isLoading: true,
+  isBiometricVerified: false,
+  setIsBiometricVerified: () => {},
   bypassAuth: () => {},
   logout: () => {},
   updateProfile: async () => {},
+  registerBiometricCredential: async () => {},
+  removeBiometricCredential: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -29,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBiometricVerified, setIsBiometricVerified] = useState(false);
 
   // Persistence Key
   const PERSIST_KEY = 'gula_user_profile';
@@ -57,9 +66,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const bypassAuth = (mockProfile: UserProfile) => {
+  const registerBiometricCredential = async (credential: BiometricCredential) => {
+    if (!profile) return;
+    const existing = profile.biometricCredentials || [];
+    const updated = [...existing.filter(c => c.credentialId !== credential.credentialId), credential];
+    await updateProfile({
+      biometricCredentials: updated,
+      isBiometricEnrolled: true
+    });
+  };
+
+  const removeBiometricCredential = async (credentialId: string) => {
+    if (!profile) return;
+    const existing = profile.biometricCredentials || [];
+    const updated = existing.filter(c => c.credentialId !== credentialId);
+    await updateProfile({
+      biometricCredentials: updated,
+      isBiometricEnrolled: updated.length > 0
+    });
+  };
+
+  const bypassAuth = (mockProfile: UserProfile, biometricPassed = false) => {
     setProfile(mockProfile);
     setUser({ uid: mockProfile.uid, email: mockProfile.email } as User);
+    setIsBiometricVerified(biometricPassed);
     setIsLoading(false);
     localStorage.setItem(PERSIST_KEY, JSON.stringify(mockProfile));
   };
@@ -68,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     auth.signOut();
     setUser(null);
     setProfile(null);
+    setIsBiometricVerified(false);
     localStorage.removeItem(PERSIST_KEY);
     localStorage.removeItem('gula_demo_user');
   };
@@ -128,7 +159,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, bypassAuth, logout, updateProfile }}>
+    <AuthContext.Provider value={{
+      user,
+      profile,
+      isLoading,
+      isBiometricVerified,
+      setIsBiometricVerified,
+      bypassAuth,
+      logout,
+      updateProfile,
+      registerBiometricCredential,
+      removeBiometricCredential
+    }}>
       {children}
     </AuthContext.Provider>
   );

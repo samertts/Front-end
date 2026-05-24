@@ -24,6 +24,7 @@ import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { UserRole, UserWing } from '../types/domain';
 import { PasswordStrength } from '../components/auth/PasswordStrength';
 import { OTPInput } from '../components/auth/OTPInput';
+import { SovereignBiometrics } from '../components/auth/SovereignBiometrics';
 
 import { useAuth } from '../contexts/AuthContext';
 import { UserProfile } from '../types/domain';
@@ -58,6 +59,7 @@ export const LandingAuthView: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [isBiometricEnrolled, setIsBiometricEnrolled] = useState(false);
   const [deviceTrusted, setDeviceTrusted] = useState(true);
+  const [showBiometricOverlay, setShowBiometricOverlay] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,21 +173,57 @@ export const LandingAuthView: React.FC = () => {
     }
   };
 
-  const handleBiometricAuth = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      // Simulation: Only works for the admin email
-      if (email === 'samertts2@gmail.com') {
-        await signInWithEmailAndPassword(auth, email, 'admin123');
-      } else {
-        throw new Error(t.biometricFailed);
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+  const handleBiometricAuth = () => {
+    setShowBiometricOverlay(true);
+  };
+
+  const handleBiometricLoginSuccess = () => {
+    const isPrimaryAdmin = email === 'samertts2@gmail.com' || email.includes('admin');
+    const isLabUser = email.includes('lab') || email.includes('tech');
+    const isDoctor = email.includes('doctor') || email.includes('physician') || email.includes('clinic');
+
+    let simulatedRole: UserRole = 'citizen';
+    let simulatedWing: UserWing = 'citizen';
+    let displayName = 'Authorized Health Citizen';
+
+    if (isPrimaryAdmin) {
+      simulatedRole = 'master_admin';
+      simulatedWing = 'admin';
+      displayName = 'Master Administrator';
+    } else if (isLabUser) {
+      simulatedRole = 'technician';
+      simulatedWing = 'lab';
+      displayName = 'Senior Lab Pathologist';
+    } else if (isDoctor) {
+      simulatedRole = 'physician';
+      simulatedWing = 'doctor';
+      displayName = 'Clinical Lead Physician';
     }
+
+    const biometricProfile: UserProfile = {
+      uid: 'demo-sovereign-mfa-user',
+      email: email || 'samertts2@gmail.com',
+      name: fullName || displayName,
+      displayName: displayName + ' (MFA Secured)',
+      role: simulatedRole,
+      wing: simulatedWing,
+      verified: true,
+      isBiometricEnrolled: true,
+      createdAt: new Date().toISOString(),
+      biometricCredentials: [
+        {
+          credentialId: 'HSM-CRED-MFA',
+          publicKey: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsomekey',
+          deviceName: 'TouchID Platform Biometrics',
+          createdAt: new Date().toISOString(),
+          userVerification: 'required',
+          keyAlgorithm: 'ECDSA-ES256'
+        }
+      ]
+    };
+
+    bypassAuth(biometricProfile, true);
+    setShowBiometricOverlay(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -796,6 +834,31 @@ export const LandingAuthView: React.FC = () => {
           <span>GULA Core v2.4.82</span>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showBiometricOverlay && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2.5rem] p-4 relative shadow-2xl"
+            >
+              <button 
+                onClick={() => setShowBiometricOverlay(false)}
+                className="absolute top-6 right-6 text-slate-450 hover:text-slate-650 dark:hover:text-white text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-white/10 px-3 py-1.5 rounded-xl z-20 active:scale-95 transition-transform"
+              >
+                ✕ Close
+              </button>
+              <SovereignBiometrics 
+                mode="login" 
+                targetEmail={email} 
+                onVerificationSuccess={handleBiometricLoginSuccess} 
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

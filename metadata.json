@@ -8,6 +8,7 @@
   "majorCapabilities": [
     "AI-Assisted Diagnostics",
     "Multi-tenant LIMS",
-    "HL7 Integration"
+    "HL7 Integration",
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }

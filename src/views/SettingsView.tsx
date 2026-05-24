@@ -40,6 +40,7 @@ import { useUIStore } from '../store/uiStore';
 import { useFeatureFlags } from '../store/featureFlags';
 import { BehavioralBiometrics } from '../components/BehavioralBiometrics';
 import { SovereignHealthID } from '../components/SovereignHealthID';
+import { SovereignBiometrics } from '../components/auth/SovereignBiometrics';
 
 type TabId = 'profile' | 'appearance' | 'language' | 'security' | 'ai' | 'compliance' | 'network' | 'system' | 'help';
 
@@ -552,18 +553,7 @@ export function SettingsView() {
       case 'security':
         return (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-             <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
-                     <Fingerprint size={24} />
-                   </div>
-                   <div>
-                     <h4 className="font-bold">{t.biometricVaulting}</h4>
-                     <p className="text-xs text-slate-500">{t.biometricVaultingDesc}</p>
-                   </div>
-                </div>
-                <div className="w-12 h-6 bg-indigo-600 rounded-full relative"><div className={cn("absolute top-1 w-4 h-4 bg-white rounded-full", isRtl ? "left-1" : "right-1")} /></div>
-             </div>
+             <SovereignBiometrics mode="settings" />
              <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">{t.securityActions}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
