@@ -9,9 +9,15 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "cap:sync": "npx cap sync",
+    "android:build": "npm run build && npx cap sync android",
+    "android:copy": "npx cap copy android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
     "@firebase/eslint-plugin-security-rules": "^0.0.1",
     "@google/genai": "^1.50.1",
     "@google/generative-ai": "^0.24.1",

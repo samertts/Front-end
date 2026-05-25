@@ -118,6 +118,7 @@ export function useNavigation() {
           { to: '/admin/audit', icon: History, label: t.auditLogs, subtext: t.compliance, roles: ['master_admin', 'admin', 'ministry_inspector'] },
           { to: '/admin/architecture', icon: Code2, label: t.systemsArchitecture, subtext: t.globalStatus, roles: ['master_admin'] },
           { to: '/admin/integrations', icon: Globe, label: t.connectedApis, subtext: t.interoperability, roles: ['master_admin', 'admin', 'integration_service'] },
+          { to: '/admin/validation', icon: ShieldCheck, label: t.sovereignValidation, subtext: "Compliance Matrices", roles: ['master_admin', 'admin'] },
           { to: '/admin/infrastructure', icon: Server, label: t.clusterHealth, subtext: t.nodeNetwork, roles: ['master_admin'] },
           { to: '/multi-platform', icon: Globe, label: "Multi-Platform Portal", subtext: "Unified Simulator", roles: ['master_admin', 'admin'] },
           { to: '/settings', icon: Settings, label: t.infrastructure, subtext: t.settings, roles: ['master_admin', 'admin', 'integration_service'] },

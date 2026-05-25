@@ -28,6 +28,7 @@ import { AuditLog } from './views/admin/AuditLog';
 import { InfrastructureView } from './views/admin/InfrastructureView';
 import { IntegrationHub } from './views/admin/IntegrationHub';
 import { SystemsArchitectureView } from './views/admin/SystemsArchitectureView';
+import { SovereignValidationWorkbench } from './views/admin/SovereignValidationWorkbench';
 import { ResearcherDashboard } from './views/research/ResearcherDashboard';
 import { CitizenDashboard } from './views/citizen/CitizenDashboard';
 import { SmartResultsView } from './views/citizen/SmartResultsView';
@@ -158,6 +159,11 @@ function AnimatedRoutes() {
         <Route path="/admin/integrations" element={
           <PermissionGuard resource="integration" action="read">
             <IntegrationHub />
+          </PermissionGuard>
+        } />
+        <Route path="/admin/validation" element={
+          <PermissionGuard resource="infrastructure" action="manage">
+            <SovereignValidationWorkbench />
           </PermissionGuard>
         } />
 
