@@ -16,6 +16,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { LabDeviceMonitor } from '../../components/LabDeviceMonitor';
 import { OperationalIntelligence } from '../../components/lab/OperationalIntelligence';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
+import { AutonomousSampleTriage } from '../../components/lab/AutonomousSampleTriage';
 
 const StatCard = ({ title, value, subtext, icon: Icon, trend, color = "bg-indigo-600", bg }: any) => (
   <motion.div 
@@ -374,6 +375,8 @@ export function LabDashboard() {
           <StatCard key={i} {...m} />
         ))}
       </div>
+
+      <AutonomousSampleTriage />
 
       <PredictiveAnalytics />
 

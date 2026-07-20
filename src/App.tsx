@@ -238,7 +238,7 @@ function AnimatedRoutes() {
 function AppContent() {
   const { user, isLoading } = useAuth();
   const { t, dir } = useLanguage();
-  const { isFocusMode, theme } = useUIStore();
+  const { isFocusMode, theme, isSidebarPinned } = useUIStore();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
@@ -308,10 +308,15 @@ function AppContent() {
       {!isFocusMode && <Sidebar />}
 
       <main className={cn(
-        "flex-1 flex flex-col transition-all duration-700 ease-in-out",
+        "flex-1 flex flex-col transition-all duration-300 ease-in-out",
         isFocusMode 
           ? "w-screen h-screen m-0 rounded-0" 
-          : cn("lg:ml-72 h-screen overflow-hidden", isRtl ? "lg:ml-0 lg:mr-72" : "lg:ml-72")
+          : cn(
+              "h-screen overflow-hidden",
+              isSidebarPinned
+                ? (isRtl ? "lg:mr-72" : "lg:ml-72")
+                : (isRtl ? "lg:mr-20" : "lg:ml-20")
+            )
       )}>
         {!isFocusMode && <TopBar />}
         

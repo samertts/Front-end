@@ -4,7 +4,9 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
 import { z } from 'zod';
-import * as admin from 'firebase-admin';
+import fs from 'fs';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { GoogleGenAI } from "@google/genai";
 import { RankingEngine } from './src/services/financial/RankingEngine.ts';
 import { PricingEngine } from './src/services/financial/PricingEngine.ts';
@@ -87,14 +89,19 @@ function evaluateSafetyCortex(prompt: string, responseText: string) {
   };
 }
 
-// Initialize Firebase Admin (using default credentials if possible)
+// Initialize Firebase Admin with credentials from config
+let db: any = null;
 try {
-  admin.initializeApp();
-} catch (e) {
-  console.warn("Firebase Admin failed to initialize. Financial persistence will be mocked.");
+  const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
+  const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  const app = initializeApp({
+    projectId: firebaseConfig.projectId
+  });
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  console.log("Firebase Admin successfully initialized.");
+} catch (e: any) {
+  console.error("Firebase Admin failed to initialize. Financial persistence will be mocked:", e);
 }
-
-const db = admin.firestore?.();
 
 async function startServer() {
   const app = express();
@@ -136,7 +143,7 @@ async function startServer() {
         try {
           await db.collection('messages').add({
             ...messageData,
-            serverTimestamp: admin.firestore.FieldValue.serverTimestamp()
+            serverTimestamp: FieldValue.serverTimestamp()
           });
         } catch (e) {
           console.error("Failed to persist message:", e);
@@ -181,7 +188,7 @@ async function startServer() {
 
       const ranked = RankingEngine.antiDominanceControl(
         list.map((p: any) => {
-          const ad = adsMap.get(p.id);
+          const ad = adsMap.get(p.id) as any;
           const score = RankingEngine.calculateScore(p, ad?.bid || 0, ad?.fraudScore || 0);
           return { ...p, score };
         })
@@ -206,7 +213,7 @@ async function startServer() {
       if (db) {
         await db.collection('financial_transactions').add({
           ...data,
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp()
         });
       }
       res.json({ status: 'success', data });
@@ -248,7 +255,7 @@ async function startServer() {
           score: report.score,
           severity: report.score > 80 ? 'critical' : 'high',
           context: { ip: context.ip, ua: context.userAgent },
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp()
         });
 
         if (report.penaltyRecommendation === 'deactivate') {

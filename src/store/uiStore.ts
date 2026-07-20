@@ -10,11 +10,13 @@ interface UIState {
   };
   theme: 'light' | 'dark' | 'contrast';
   recentActions: { id: string; label: string; to: string; timestamp: number }[];
+  isSidebarPinned: boolean;
   
   setTheme: (theme: 'light' | 'dark' | 'contrast') => void;
   toggleFocusMode: () => void;
   toggleCommandPalette: () => void;
   setCommandPalette: (open: boolean) => void;
+  setSidebarPinned: (pinned: boolean) => void;
   updateSystemStatus: (key: keyof UIState['systemStatus'], status: any) => void;
   addRecentAction: (action: { label: string; to: string }) => void;
 }
@@ -29,6 +31,7 @@ export const useUIStore = create<UIState>((set) => ({
   },
   theme: (localStorage.getItem('gula-theme') as any) || 'light',
   recentActions: [],
+  isSidebarPinned: localStorage.getItem('gula_sidebar_pinned') !== 'false',
 
   setTheme: (theme) => {
     localStorage.setItem('gula-theme', theme);
@@ -37,6 +40,10 @@ export const useUIStore = create<UIState>((set) => ({
   toggleFocusMode: () => set((state) => ({ isFocusMode: !state.isFocusMode })),
   toggleCommandPalette: () => set((state) => ({ isCommandPaletteOpen: !state.isCommandPaletteOpen })),
   setCommandPalette: (open) => set({ isCommandPaletteOpen: open }),
+  setSidebarPinned: (pinned) => {
+    localStorage.setItem('gula_sidebar_pinned', pinned ? 'true' : 'false');
+    set({ isSidebarPinned: pinned });
+  },
   updateSystemStatus: (key, status) => set((state) => ({
     systemStatus: { ...state.systemStatus, [key]: status }
   })),
