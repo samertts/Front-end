@@ -43,6 +43,7 @@ import {
 import { useLanguage } from '../../contexts/LanguageContext';
 import { DatabaseIntegrityService, SQLiteDbState } from '../../services/DatabaseIntegrityService';
 import { DatabaseIntegrityDashboard } from '../../components/DatabaseIntegrityDashboard';
+import { DatabaseSchedulerService, SchedulerHistoryEntry } from '../../services/DatabaseSchedulerService';
 
 // Define the 17 comprehensive validation phases
 interface ValidationPhase {
@@ -238,6 +239,40 @@ export const SovereignValidationWorkbench: React.FC = () => {
   });
 
   const [selectedDbId, setSelectedDbId] = useState<string>('clinical');
+  
+  // Background integrity scheduler state integration
+  const [schedulerActive, setSchedulerActive] = useState<boolean>(DatabaseSchedulerService.isRunning());
+  const [schedulerInterval, setSchedulerInterval] = useState<number>(DatabaseSchedulerService.getInterval());
+  const [schedulerHistory, setSchedulerHistory] = useState<SchedulerHistoryEntry[]>([]);
+
+  useEffect(() => {
+    // Auto-start background checks on view mount with 20 seconds interval
+    if (!DatabaseSchedulerService.isRunning()) {
+      DatabaseSchedulerService.start(20);
+    }
+    
+    setSchedulerActive(DatabaseSchedulerService.isRunning());
+    setSchedulerInterval(DatabaseSchedulerService.getInterval());
+
+    const handleSchedulerUpdate = (historyList: SchedulerHistoryEntry[]) => {
+      setSchedulerHistory(historyList);
+      setSchedulerActive(DatabaseSchedulerService.isRunning());
+      setSchedulerInterval(DatabaseSchedulerService.getInterval());
+
+      // Propagate static db changes into our component state so charts sync up immediately during check runs
+      const dbs = DatabaseIntegrityService.getAllDatabases();
+      const map: Record<string, SQLiteDbState> = {};
+      dbs.forEach(db => {
+        map[db.id] = db;
+      });
+      setSqliteDbs(map);
+    };
+
+    DatabaseSchedulerService.registerListener(handleSchedulerUpdate);
+    return () => {
+      DatabaseSchedulerService.unregisterListener(handleSchedulerUpdate);
+    };
+  }, []);
   const [sqliteLogs, setSqliteLogs] = useState<string[]>([
     'SQLITE SECURE ENCLAVE ACTIVE / ZERO-TRUST LOCAL JOURNALING CONSOLE LOADED',
     'CONFIRMING WAL INTEGRITY MODE: STALKING TRANSACTIONS IN SHM / LOCAL DISK CACHE',
@@ -1272,6 +1307,167 @@ export const SovereignValidationWorkbench: React.FC = () => {
                   dbId={selectedDbId} 
                   dbState={activeSqliteDb} 
                 />
+
+                {/* Automated Background Integrity Scheduler Module & History Audit Registry */}
+                <div className="bg-slate-900 text-slate-100 rounded-[2rem] border border-slate-800 p-6 space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+                    <div className="flex items-center gap-3">
+                      <span className={`p-2.5 rounded-xl shrink-0 ${schedulerActive ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                        <Clock size={18} className={schedulerActive ? "animate-spin" : ""} style={{ animationDuration: schedulerActive ? "8s" : "" }} />
+                      </span>
+                      <div>
+                        <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                          Automated Integrity Monitoring Scheduler
+                          {schedulerActive && (
+                            <span className="inline-flex items-center gap-1 text-[8.5px] font-sans text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full uppercase font-bold animate-pulse">
+                              ● live background worker
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-[10px] font-bold text-slate-500 tracking-widest uppercase mt-0.5">Automated Multi-Database Diagnostics & Alerts Routing</p>
+                      </div>
+                    </div>
+
+                    {/* Quick controls: Start/Stop toggle button */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (schedulerActive) {
+                            DatabaseSchedulerService.stop();
+                            setSchedulerActive(false);
+                          } else {
+                            DatabaseSchedulerService.start(schedulerInterval);
+                            setSchedulerActive(true);
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer select-none border transition-all active:scale-95
+                          ${schedulerActive 
+                            ? 'bg-rose-500/10 hover:bg-rose-500/25 text-rose-450 border-rose-500/20' 
+                            : 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-450 border-emerald-500/20'}`}
+                      >
+                        {schedulerActive ? 'Deactivate Worker' : 'Activate Scheduler'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          writeSqliteLog('Manual background check triggered.');
+                          writeLog('Forcing an manual cycle on DatabaseSchedulerService background checks...');
+                          await DatabaseSchedulerService.runScheduledCheck();
+                        }}
+                        className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-xl transition-all cursor-pointer select-none text-slate-300"
+                        title="Force Check Cycle Now"
+                      >
+                        <RefreshCw size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Core Settings / Controller Rows */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/65 p-4 rounded-2xl border border-slate-850">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">Check Cycle Frequency</label>
+                      <p className="text-xs text-slate-500">Adhering to military SLA diagnostics, background intervals scan disk sectors periodically.</p>
+                      
+                      <div className="flex gap-2 pt-1">
+                        {[10, 20, 30, 60].map((sec) => (
+                          <button
+                            key={sec}
+                            type="button"
+                            onClick={() => {
+                              setSchedulerInterval(sec);
+                              if (schedulerActive) {
+                                DatabaseSchedulerService.start(sec);
+                              }
+                            }}
+                            className={`flex-1 py-2 rounded-lg text-xs font-mono font-black border transition-all cursor-pointer select-none active:scale-95
+                              ${schedulerInterval === sec 
+                                ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg' 
+                                : 'bg-slate-850 hover:bg-slate-800 text-slate-300 border-slate-800'}`}
+                          >
+                            {sec}s
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 flex flex-col justify-between">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">Automated Alerts Actions Pipeline</label>
+                        <p className="text-xs text-slate-500 mt-1">If any virtual SQLite subsystem returns a failure (<span className="text-rose-400 font-bold font-mono">ok == false</span>), the system dispatches a high-priority GulaEvent to Firestore and broadcasts a STAT popup alert overlay.</p>
+                      </div>
+
+                      <div className="border-t border-slate-800 pt-2 flex justify-between items-center text-[10px] uppercase font-bold text-slate-500">
+                        <span>Current Status:</span>
+                        <span className={`font-black tracking-wide ${schedulerActive ? 'text-emerald-400' : 'text-slate-400'}`}>
+                          {schedulerActive ? `Scanning every ${schedulerInterval}s` : 'Disabled'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scheduler Execution History List */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-450 tracking-widest">
+                      <span>Scheduler History Audit Log</span>
+                      <button 
+                        type="button"
+                        onClick={() => DatabaseSchedulerService.clearHistory()}
+                        className="text-slate-500 hover:text-indigo-400 transition-colors cursor-pointer select-none font-bold"
+                      >
+                        Clear log
+                      </button>
+                    </div>
+
+                    <div className="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/40">
+                      <div className="max-h-56 overflow-y-auto custom-scrollbar divide-y divide-slate-850 font-mono text-[11px] leading-relaxed">
+                        {schedulerHistory.length === 0 ? (
+                          <div className="p-8 text-center text-slate-500 italic flex flex-col items-center justify-center gap-1.5">
+                            <RefreshCw size={20} className="text-slate-700" />
+                            No scheduler log entries yet. Waiting for check interval...
+                          </div>
+                        ) : (
+                          schedulerHistory.map((item) => (
+                            <div key={item.id} className="p-3.5 hover:bg-slate-900/45 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center flex-wrap gap-2 text-xs">
+                                  <span className="text-slate-500 font-semibold">[{item.timestamp}]</span>
+                                  <span className="text-white font-extrabold">{item.dbName}</span>
+                                  <span className="text-slate-400">({item.fileName})</span>
+                                </div>
+                                <div className="text-slate-400 flex items-center gap-1.5 flex-wrap">
+                                  <span>Diagnosis Status: <span className="text-slate-300 capitalize">{item.status.replace(/_/g, ' ')}</span></span>
+                                  {item.errors.length > 0 && (
+                                    <span className="text-rose-400 flex items-center gap-0.5 font-bold">
+                                      - Errors: {item.errors.join(', ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2shrink-0">
+                                {/* Success / Failure Indicators */}
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border
+                                  ${item.ok 
+                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/15' 
+                                    : 'bg-rose-500/10 text-rose-400 border-rose-500/15 animate-pulse'}`}>
+                                  {item.ok ? 'OK' : 'FAIL'}
+                                </span>
+
+                                {item.alertTriggered && (
+                                  <span className="px-2 py-0.5 bg-red-650 text-white rounded text-[8px] font-black uppercase tracking-wider animate-bounce">
+                                    Alert Routed
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Scenario hazard injections */}
                 <div className="space-y-3">
