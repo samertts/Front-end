@@ -1,11 +1,13 @@
 import { db } from '../firebase';
 import { doc, setDoc, updateDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { createIdempotencyKey } from '../types/gulaIntegration';
 
 export type SyncAction = {
   id: string;
   type: 'UPDATE_PROFILE' | 'LOG_ACTIVITY' | 'UPDATE_TASK' | 'BULK_UPDATE_TASKS';
   payload: any;
   timestamp: number;
+  idempotencyKey: string;
 };
 
 const SYNC_QUEUE_KEY = 'gula_sync_queue';
@@ -13,23 +15,50 @@ const SYNC_QUEUE_KEY = 'gula_sync_queue';
 export const SyncService = {
   getQueue(): SyncAction[] {
     const stored = localStorage.getItem(SYNC_QUEUE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) return [];
+    try {
+      const parsed = JSON.parse(stored) as Array<Partial<SyncAction>>;
+      return parsed.map((item) => {
+        if (item.idempotencyKey) return item as SyncAction;
+        const entityId = String(item.payload?.taskId ?? item.payload?.uid ?? item.payload?.id ?? item.type ?? 'legacy');
+        const version = Number.isInteger(item.payload?.version) && (item.payload?.version as number) > 0
+          ? (item.payload?.version as number)
+          : Number(item.timestamp ?? Date.now());
+        return {
+          ...(item as SyncAction),
+          id: item.id ?? `${Date.now()}-legacy`,
+          timestamp: Number(item.timestamp ?? Date.now()),
+          idempotencyKey: createIdempotencyKey(entityId, 'workforce.assignment.changed', version),
+        };
+      });
+    } catch {
+      console.error('[SyncService] Corrupt queue rejected; preserving no mutable clinical state locally.');
+      return [];
+    }
   },
 
   saveQueue(queue: SyncAction[]): void {
     localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
   },
 
-  enqueue(type: SyncAction['type'], payload: any): void {
+  enqueue(type: SyncAction['type'], payload: any): string {
     const queue = this.getQueue();
-    queue.push({
-      id: Math.random().toString(36).substring(7),
+    const entityId = String(payload?.taskId ?? payload?.uid ?? payload?.id ?? type);
+    const version = Number.isInteger(payload?.version) && payload.version > 0 ? payload.version : Date.now();
+    const idempotencyKey = createIdempotencyKey(entityId, 'workforce.assignment.changed', version);
+    const action: SyncAction = {
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
       type,
       payload,
-      timestamp: Date.now()
-    });
-    this.saveQueue(queue);
+      timestamp: Date.now(),
+      idempotencyKey,
+    };
+    if (!queue.some((item) => item.idempotencyKey === idempotencyKey)) {
+      queue.push(action);
+      this.saveQueue(queue);
+    }
     console.log(`[SyncService] Action enqueued (offline): ${type}`);
+    return idempotencyKey;
   },
 
   async processQueue(): Promise<void> {
@@ -45,6 +74,9 @@ export const SyncService = {
 
     for (const action of sortedQueue) {
       try {
+        if (!action.idempotencyKey) {
+          throw new Error(`Action ${action.id} has no idempotency key`);
+        }
         switch (action.type) {
           case 'UPDATE_PROFILE':
             await updateDoc(doc(db, 'users', action.payload.uid), {
