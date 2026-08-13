@@ -1,4 +1,4 @@
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { doc, setDoc, updateDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { createIdempotencyKey } from '../types/gulaIntegration';
 
@@ -61,6 +61,24 @@ export const SyncService = {
     return idempotencyKey;
   },
 
+  async submitToGula(action: SyncAction): Promise<void> {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Authenticated user is required for GULA sync');
+    const idToken = await user.getIdToken();
+    const response = await fetch('/api/gula/sync', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        actionId: action.id,
+        actionType: action.type,
+        payload: action.payload,
+        timestamp: action.timestamp,
+        idempotencyKey: action.idempotencyKey,
+      }),
+    });
+    if (!response.ok) throw new Error(`GULA sync rejected action (${response.status})`);
+  },
+
   async processQueue(): Promise<void> {
     if (!navigator.onLine) return;
     
@@ -77,6 +95,7 @@ export const SyncService = {
         if (!action.idempotencyKey) {
           throw new Error(`Action ${action.id} has no idempotency key`);
         }
+        await this.submitToGula(action);
         switch (action.type) {
           case 'UPDATE_PROFILE':
             await updateDoc(doc(db, 'users', action.payload.uid), {
