@@ -6,6 +6,7 @@ import path from 'path';
 import { z } from 'zod';
 import fs from 'fs';
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { GoogleGenAI } from "@google/genai";
 import { RankingEngine } from './src/services/financial/RankingEngine.ts';
@@ -115,6 +116,61 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // --- GULA integration proxy: browser never receives the service token ---
+  app.post('/api/gula/sync', async (req, res) => {
+    const gulaUrl = process.env.GULA_API_URL?.trim();
+    const gulaToken = process.env.GULA_SERVICE_TOKEN?.trim();
+    if (!gulaUrl || !gulaToken) {
+      return res.status(503).json({ error: 'GULA sync is not configured' });
+    }
+
+    const authorization = req.header('authorization');
+    if (!authorization?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Firebase bearer token is required' });
+    }
+
+    try {
+      const decoded = await getAuth().verifyIdToken(authorization.slice(7));
+      const { actionId, actionType, payload, timestamp, idempotencyKey } = req.body ?? {};
+      if (!actionId || !actionType || !idempotencyKey || !payload || typeof payload !== 'object') {
+        return res.status(422).json({ error: 'actionId, actionType, payload, and idempotencyKey are required' });
+      }
+      const tenantId = String(decoded.tenantId ?? decoded.tenant_id ?? '');
+      if (!tenantId) return res.status(403).json({ error: 'Tenant claim is required' });
+
+      const envelope = {
+        event_id: String(actionId),
+        event_type: 'frontend.sync.requested',
+        schema_version: 1,
+        source_service: 'gula-front-end',
+        tenant_id: tenantId,
+        occurred_at: new Date(Number(timestamp) || Date.now()).toISOString(),
+        actor_id: decoded.uid,
+        entity_id: String(actionId),
+        correlation_id: String(actionId),
+        idempotency_key: String(idempotencyKey),
+        payload: { action_id: String(actionId), action_type: String(actionType), payload },
+      };
+
+      let lastStatus = 503;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const response = await fetch(`${gulaUrl.replace(/\/$/, '')}/integrations/events`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${gulaToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(envelope),
+        });
+        lastStatus = response.status;
+        if (response.ok) return res.status(202).json(await response.json());
+        if (response.status === 409) return res.status(409).json({ error: 'GULA rejected an idempotency conflict' });
+        if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** attempt));
+      }
+      return res.status(lastStatus >= 400 ? 503 : lastStatus).json({ error: 'GULA sync unavailable; action remains queued' });
+    } catch (error) {
+      console.error('[GULA] sync proxy rejected request:', error);
+      return res.status(401).json({ error: 'Unable to authenticate or forward GULA sync request' });
+    }
+  });
 
   // --- Real-time Socket Logic ---
   io.on('connection', (socket) => {
